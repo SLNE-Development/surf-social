@@ -1,3 +1,6 @@
-public-message-format: "%delete% %teleport% %luckperms_prefix% %player_name% %channel%<gray>>> <white>%message%"
-private-message-format-send: "<gray>> <red>PM <gray>|<gold> Du<gray> -> <gold>%player_name%"
-private-message-format-receive: "<gray>> <red>PM <gray>|<gold> %player_name% <gray>-><gold> Dich"
+database:
+  host:
+  port:
+  database:
+  username:
+  password:
