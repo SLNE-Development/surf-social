@@ -18,7 +18,6 @@ val newVersion = "$major.$minor.$patch"
 
 group = "dev.slne"
 version = "$newVersion-1.21.4-SNAPSHOT"
-//.
 repositories {
     mavenCentral()
 
