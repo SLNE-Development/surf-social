@@ -7,20 +7,19 @@ import dev.slne.surf.social.chat.command.channel.ChannelCommand
 import dev.slne.surf.social.chat.listener.PlayerAsyncChatListener
 import dev.slne.surf.social.chat.listener.PlayerQuitListener
 import dev.slne.surf.social.chat.`object`.Message
+import dev.slne.surf.social.chat.permission.SurfChatPermissions
 import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.service.ChatHistoryService
 import dev.slne.surf.social.chat.service.DatabaseService
-import dev.slne.surf.social.chat.util.Colors
 import dev.slne.surf.social.chat.util.MessageBuilder
-
+import dev.slne.surf.surfapi.core.api.messages.Colors
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
-
-import java.security.SecureRandom
-import java.util.UUID
+import java.util.*
 
 class SurfChat : SuspendingJavaPlugin() {
-    override fun onEnable() {
+    override suspend fun onEnableAsync() {
         CommandAPI.unregister("msg")
         CommandAPI.unregister("tell")
         CommandAPI.unregister("w")
@@ -39,6 +38,8 @@ class SurfChat : SuspendingJavaPlugin() {
 
         Bukkit.getPluginManager().registerEvents(PlayerAsyncChatListener(), this)
         Bukkit.getPluginManager().registerEvents(PlayerQuitListener(), this)
+
+        SurfChatPermissions
     }
 
     override suspend fun onDisableAsync() {
@@ -47,20 +48,24 @@ class SurfChat : SuspendingJavaPlugin() {
     }
 
     companion object {
-        private val random: SecureRandom = SecureRandom()
-
         val instance: SurfChat get() = getPlugin(SurfChat::class.java)
 
         fun send(player: OfflinePlayer, text: MessageBuilder, messageID: UUID = UUID.randomUUID()) {
-            val message = Colors.PREFIX.append(text.build())
+            send(player, text.build(), messageID)
+        }
 
-            if (player.isOnline) {
-                val onlinePlayer = player.player ?: return
+        fun send(player: OfflinePlayer, text: Component, messageID: UUID = UUID.randomUUID()) {
+            val message = Colors.PREFIX.append(text)
+            val onlinePlayer = player.player ?: return
 
-                onlinePlayer.sendMessage(message)
-
-                ChatHistoryService.insertNewMessage(player.uniqueId, Message("Unknown", player.name ?: player.uniqueId.toString(), message), messageID)
-            }
+            onlinePlayer.sendMessage(message)
+            ChatHistoryService.insertNewMessage(
+                player.uniqueId,
+                Message("Unknown", player.name ?: player.uniqueId.toString(), message),
+                messageID
+            )
         }
     }
 }
+
+val plugin get() = SurfChat.instance

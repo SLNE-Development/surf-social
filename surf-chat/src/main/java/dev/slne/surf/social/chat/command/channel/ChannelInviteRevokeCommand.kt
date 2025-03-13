@@ -28,7 +28,7 @@ class ChannelInviteRevokeCommand(commandName: String) : CommandAPICommand(comman
                 return@playerExecutor
             }
 
-            channel.revokeInvite(target)
+            channel.revokeInvite(target.uniqueId)
 
             SurfChat.send(player, MessageBuilder().primary("Du hast die Einladung für ").info(target.name ?: target.uniqueId.toString()).primary(" in den Nachrichtenkanal ").info(channel.name).success(" zurückgezogen."))
             SurfChat.send(target, MessageBuilder().primary("Deine Einladung in den Nachrichtenkanal ").info(channel.name).success(" wurde zurückgezogen."))

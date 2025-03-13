@@ -1,5 +1,6 @@
 package dev.slne.surf.social.chat.util
 
+import dev.slne.surf.surfapi.core.api.messages.Colors
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent

@@ -1,5 +1,6 @@
 package dev.slne.surf.social.chat.util
 
+import dev.slne.surf.surfapi.core.api.messages.Colors
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectList
 import net.kyori.adventure.text.Component

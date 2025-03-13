@@ -41,7 +41,6 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.6")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("dev.hsbrysk:caffeine-coroutines:2.0.0")
     implementation("dev.jorel:commandapi-bukkit-kotlin:9.7.0")
 }
 

@@ -28,7 +28,7 @@ class ChannelDemoteCommand(commandName: String) : CommandAPICommand(commandName)
                 return@playerExecutor
             }
 
-            channel.demote(target)
+            channel.demote(target.uniqueId)
 
             SurfChat.send(player, MessageBuilder().primary("Du hast den Spieler ").info(target.name ?: target.uniqueId.toString()).error(" degradiert."))
             SurfChat.send(target, MessageBuilder().primary("Du wurdest ").error("degradiert"))

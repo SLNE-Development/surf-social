@@ -4,44 +4,42 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.ChatUser
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import it.unimi.dsi.fastutil.objects.ObjectSet
+import dev.slne.surf.surfapi.core.api.util.logger
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-import net.kyori.adventure.text.logger.slf4j.ComponentLogger
-import org.bukkit.configuration.file.FileConfiguration
 import java.sql.SQLException
 import java.util.*
 
 object DatabaseService {
-    private val config: FileConfiguration = SurfChat.instance.config
-    private val logger: ComponentLogger = ComponentLogger.logger(DatabaseService::class.java)
+    private val log = logger()
+    private val config = SurfChat.instance.config
+    private lateinit var dataSource: HikariDataSource
 
-    private var dataSource: HikariDataSource? = null
+    suspend fun connect() {
+        val config = HikariConfig().apply {
+            jdbcUrl =
+                "jdbc:mysql://" + config.getString("database.host") + ":" + config.getInt("database.port") + "/" + config.getString(
+                    "database.database"
+                )
+            username = config.getString("database.username")
+            password = config.getString("database.password")
 
-    fun connect() {
-        val config = HikariConfig()
+            addDataSourceProperty("cachePrepStmts", "true")
+            addDataSourceProperty("prepStmtCacheSize", "250")
+            addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
+        }
 
-        config.jdbcUrl = "jdbc:mysql://" + this.config.getString("database.host") + ":" + this.config.getInt("database.port") + "/" + this.config.getString("database.database")
-        config.username = this.config.getString("database.username")
-        config.password = this.config.getString("database.password")
-        config.addDataSourceProperty("cachePrepStmts", "true")
-        config.addDataSourceProperty("prepStmtCacheSize", "250")
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
 
         dataSource = HikariDataSource(config)
-
-        this.createTable()
+        createTable()
     }
 
     fun disconnect() {
-        val dataSource: HikariDataSource = this.dataSource ?: return
-
         dataSource.close()
     }
 
-    private fun createTable() {
+    private suspend fun createTable() = withContext(Dispatchers.IO) {
         val sql = "CREATE TABLE IF NOT EXISTS surf_chat_user (" +
                 "uuid VARCHAR(36) PRIMARY KEY," +
                 "pm_enabled BOOLEAN NOT NULL," +
@@ -49,35 +47,32 @@ object DatabaseService {
                 ");"
 
         try {
-            val dataSource: HikariDataSource = this.dataSource ?: return
-
             dataSource.connection.use { conn ->
                 conn.createStatement().use { stmt ->
                     stmt.execute(sql)
                 }
             }
         } catch (e: SQLException) {
-            logger.error("Failed to create table", e)
+            log.atSevere()
+                .withCause(e)
+                .log("Failed to create table")
         }
     }
 
-    suspend fun loadUser(uuid: UUID): ChatUser {
+    suspend fun loadUser(uuid: UUID): ChatUser = withContext(Dispatchers.IO) {
         val sql = "SELECT uuid, pm_enabled, ignore_list FROM surf_chat_user WHERE uuid = ?"
 
-        return withContext(Dispatchers.IO) {
             try {
-                val dataSource: HikariDataSource = this@DatabaseService.dataSource ?: return@withContext this@DatabaseService.createUser(uuid)
-
                 dataSource.connection.use { conn ->
                     conn.prepareStatement(sql).use { pstmt ->
                         pstmt.setString(1, uuid.toString())
-                        val rs: java.sql.ResultSet = pstmt.executeQuery()
+                        val rs = pstmt.executeQuery()
                         if (rs.next()) {
-                            val ignoreList: ObjectSet<UUID> = ObjectOpenHashSet()
-                            val ignoreListStr: String = rs.getString("ignore_list")
+                            val ignoreList = mutableObjectSetOf<UUID>()
+                            val ignoreListStr = rs.getString("ignore_list")
 
                             if (ignoreListStr.isNotEmpty()) {
-                                for (id in ignoreListStr.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
+                                for (id in ignoreListStr.split(",").filter { it.isNotBlank() }) {
                                     ignoreList.add(UUID.fromString(id))
                                 }
                             }
@@ -87,47 +82,43 @@ object DatabaseService {
                     }
                 }
             } catch (e: SQLException) {
-                logger.error("Failed to load user", e)
+                log.atSevere()
+                    .withCause(e)
+                    .log("Failed to load user")
             }
 
-            return@withContext this@DatabaseService.createUser(uuid)
+        return@withContext ChatUser(uuid)
         }
-    }
 
-    suspend fun saveUser(user: ChatUser) {
-        val sql = "INSERT INTO surf_chat_user (uuid, pm_enabled, ignore_list) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE pm_enabled = ?, ignore_list = ?"
 
-        withContext(Dispatchers.IO) {
-            try {
-                val dataSource: HikariDataSource = this@DatabaseService.dataSource ?: return@withContext
+    suspend fun saveUser(user: ChatUser) = withContext(Dispatchers.IO) {
+        val sql =
+            "INSERT INTO surf_chat_user (uuid, pm_enabled, ignore_list) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE pm_enabled = ?, ignore_list = ?"
 
-                dataSource.connection.use { conn ->
-                    conn.prepareStatement(sql).use { pstmt ->
-                        pstmt.setString(1, user.uuid.toString())
-                        pstmt.setBoolean(2, user.toggledPM)
+        try {
+            dataSource.connection.use { conn ->
+                conn.prepareStatement(sql).use { pstmt ->
+                    pstmt.setString(1, user.uuid.toString())
+                    pstmt.setBoolean(2, user.toggledPM)
 
-                        val ignoreListStr: String = java.lang.String.join(",",
-                            *user.ignoreList.stream()
-                                .map { obj: UUID -> obj.toString() }
-                                .toArray { arrayOfNulls<String>(it) })
+                    val ignoreListStr = user.ignoreList.joinToString(",") { it.toString() }
 
-                        pstmt.setString(3, ignoreListStr)
-                        pstmt.setBoolean(4, user.toggledPM)
-                        pstmt.setString(5, ignoreListStr)
-                        pstmt.executeUpdate()
-                    }
+                    pstmt.setString(3, ignoreListStr)
+                    pstmt.setBoolean(4, user.toggledPM)
+                    pstmt.setString(5, ignoreListStr)
+                    pstmt.executeUpdate()
                 }
-            } catch (e: SQLException) {
-                logger.error("Failed to save user", e)
             }
+        } catch (e: SQLException) {
+            log.atSevere()
+                .withCause(e)
+                .log("Failed to save user")
         }
     }
 
     suspend fun saveAll() {
-        ChatUser.cache.synchronous().asMap().values.forEach { user ->
+        ChatUser.cache.asMap().values.forEach { user ->
             this.saveUser(user)
         }
     }
-
-    private fun createUser(uuid: UUID): ChatUser = ChatUser(uuid, false, ObjectOpenHashSet())
 }

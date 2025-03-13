@@ -31,7 +31,7 @@ class ChannelPromoteCommand(commandName: String) : CommandAPICommand(commandName
                 return@playerExecutor
             }
 
-            channel.promote(target)
+            channel.promote(target.uniqueId)
 
             SurfChat.send(player, MessageBuilder().primary("Du hast den Spieler ").info(target.name ?: target.uniqueId.toString()).success(" befördert."))
             SurfChat.send(target, MessageBuilder().primary("Du wurdest ").success("befördert"))

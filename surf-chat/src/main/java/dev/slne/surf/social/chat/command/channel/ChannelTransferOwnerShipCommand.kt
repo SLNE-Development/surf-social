@@ -39,11 +39,11 @@ class ChannelTransferOwnerShipCommand(commandName: String) : CommandAPICommand(c
 
             val owner = channel.owner ?: return@playerExecutor
 
-            channel.unregister(owner.uniqueId)
+            channel.unregister(owner)
 
             channel.moderators.add(channel.owner)
-            channel.owner = target
-            channel.members.remove(target)
+            channel.owner = target.uniqueId
+            channel.members.remove(target.uniqueId)
 
             channel.register()
 

@@ -19,7 +19,7 @@ class ChannelLeaveCommand(commandName: String) : CommandAPICommand(commandName) 
                 return@playerExecutor
             }
 
-            channel.leave(player)
+            channel.leave(player.uniqueId)
             SurfChat.send(player, MessageBuilder().primary("Du hast den Nachrichtenkanal ").info(channel.name).error(" verlassen."))
         }
     }

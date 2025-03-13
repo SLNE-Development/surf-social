@@ -2,39 +2,39 @@ package dev.slne.surf.social.chat.command
 
 import com.github.shynixn.mccoroutine.folia.launch
 import dev.jorel.commandapi.CommandAPICommand
-import dev.jorel.commandapi.arguments.OfflinePlayerArgument
-import dev.jorel.commandapi.executors.CommandArguments
-import dev.jorel.commandapi.executors.PlayerCommandExecutor
+import dev.jorel.commandapi.kotlindsl.getValue
 import dev.jorel.commandapi.kotlindsl.offlinePlayerArgument
 import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.ChatUser
-import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.social.chat.plugin
+import dev.slne.surf.social.chat.util.Components
 import org.bukkit.OfflinePlayer
-import org.bukkit.entity.Player
 
 class IgnoreCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
         withPermission("surf.chat.command.ignore")
-        withArguments(OfflinePlayerArgument("player"))
-        offlinePlayerArgument("player")
-        playerExecutor {player, args ->
-            SurfChat.instance.launch {
-                val target = args.getUnchecked<OfflinePlayer>("player") ?: return@launch
-                val user: ChatUser = ChatUser.getUser(player.uniqueId)
-                val targetUser: ChatUser = ChatUser.getUser(target.uniqueId)
+        offlinePlayerArgument("target")
 
-                if(target == player) {
-                    SurfChat.send(player, MessageBuilder().error("Du kannst dich nicht selbst stummschalten."))
+        playerExecutor { player, args ->
+            val target: OfflinePlayer by args
+            val targetUuid = target.uniqueId
+
+            plugin.launch {
+                val user = ChatUser.getUser(player.uniqueId)
+                val targetUser = ChatUser.getUser(targetUuid)
+
+                if (targetUuid == player.uniqueId) {
+                    SurfChat.send(player, Components.cannotIgnoreSelf)
                     return@launch
                 }
 
-                if (user.isIgnoring(targetUser.uuid)) {
-                    user.ignoreList.remove(targetUser.uuid)
-                    SurfChat.send(player, MessageBuilder().primary("Du hast ").info(target.name ?: target.uniqueId.toString()).success(" entstummt."))
+                if (user.isIgnoring(targetUuid)) {
+                    user.ignoreList.remove(targetUuid)
+                    SurfChat.send(player, Components.getIgnoreComponent(target, false))
                 } else {
-                    user.ignoreList.add(targetUser.uuid)
-                    SurfChat.send(player, MessageBuilder().primary("Du hast ").info(target.name ?: target.uniqueId.toString()).error(" stumm geschaltet."))
+                    user.ignoreList.add(targetUuid)
+                    SurfChat.send(player, Components.getIgnoreComponent(target, true))
                 }
             }
         }

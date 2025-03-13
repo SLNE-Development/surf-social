@@ -28,7 +28,7 @@ class ChannelBanCommand(commandName: String) : CommandAPICommand(commandName) {
                 return@playerExecutor
             }
 
-            channel.ban(target)
+            channel.ban(target.uniqueId)
 
             SurfChat.send(player, MessageBuilder().primary("Du hast ").info(target.name ?: target.uniqueId.toString()).primary(" aus dem Nachrichtenkanal ").info(channel.name).error(" verbannt."))
             SurfChat.send(target, MessageBuilder().primary("Du wurdest aus dem Nachrichtenkanal ").info(channel.name).error(" verbannt."))

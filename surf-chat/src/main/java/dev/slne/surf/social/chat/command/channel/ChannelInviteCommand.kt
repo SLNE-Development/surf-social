@@ -28,7 +28,7 @@ class ChannelInviteCommand(commandName: String) : CommandAPICommand(commandName)
                 return@playerExecutor
             }
 
-            channel.invite(target)
+            channel.invite(target.uniqueId)
 
             SurfChat.send(player, MessageBuilder().primary("Du hast ").info(target.name ?: target.uniqueId.toString()).primary(" in den Nachrichtenkanal ").info(channel.name).success(" eingeladen."))
             SurfChat.send(target, MessageBuilder().primary("Du wurdest in den Nachrichtenkanal ").info(channel.name).success(" eingeladen. ").command(MessageBuilder().darkSpacer("[").success("Beitreten").darkSpacer("]"), MessageBuilder().success("Klicke, um beizutreten"), "/channel accept " + channel.name))

@@ -13,7 +13,7 @@ class SurfChatSaveCommand(commandName: String) : CommandAPICommand(commandName) 
         withPermission("surf.chat.command.save")
         playerExecutor{ player, _ ->
             SurfChat.instance.launch {
-                ChatUser.cache.synchronous().asMap().values.forEach { user ->
+                ChatUser.cache.asMap().values.forEach { user ->
                     DatabaseService.saveUser(user)
                 }
 

@@ -1,164 +1,115 @@
 package dev.slne.surf.social.chat.service
 
 import dev.slne.surf.social.chat.SurfChat
-
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectArraySet
-import it.unimi.dsi.fastutil.objects.ObjectSet
-
+import dev.slne.surf.surfapi.core.api.util.*
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
-
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
-import java.io.IOException
-
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import kotlin.io.path.*
+import kotlin.system.measureTimeMillis
+import kotlin.time.Duration.Companion.seconds
 
+
+private const val MESSAGE_LIMIT = 5
 
 object ChatFilterService {
-    private val blockedWords: ObjectSet<String> = ObjectArraySet()
-    private val allowedDomains: ObjectSet<String> = ObjectArraySet()
-    private val blockedPatterns: ObjectSet<Pattern> = ObjectArraySet()
 
-    private val logger: ComponentLogger = ComponentLogger.logger(this.javaClass)
-    private val rateLimit: ConcurrentHashMap<UUID, Long> = ConcurrentHashMap<UUID, Long>()
-    private val messageCount: ConcurrentHashMap<UUID, Int> = ConcurrentHashMap<UUID, Int>()
+    private val log = logger()
+    private val blockedWords = mutableObjectSetOf<String>()
+    private val allowedDomains = mutableObjectSetOf<String>()
 
-    private val VALID_CHARACTERS_PATTERN: Pattern = Pattern.compile("^[a-zA-Z0-9/.:_,()%&=?!<>|#^\"²³+*~-äöü@ ]*$")
-    private val TIME_FRAME: Long = java.util.concurrent.TimeUnit.SECONDS.toMillis(10)
-    private const val MESSAGE_LIMIT = 5
+    private val blockedPatterns = mutableObjectSetOf<Regex>()
+    private val rateLimit =
+        mutableObject2LongMapOf<UUID>().apply { defaultReturnValue(0) }.synchronize()
+
+    private val messageCount =
+        mutableObject2IntMapOf<UUID>().apply { defaultReturnValue(0) }.synchronize()
+
+    private val validCharactersRegex = "^[a-zA-Z0-9/.:_,()%&=?!<>|#^\"²³+*~-äöü@ ]*$".toRegex()
+    private val urlRegex =
+        "((http|https|ftp)://)?([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&=]*)?".toRegex(RegexOption.IGNORE_CASE)
+
+    private val TIME_FRAME = 10.seconds.inWholeMilliseconds
+
+    private val regexReplacements = char2ObjectMapOf(
+        'a' to "[a@4]", 'b' to "[b8]", 'c' to "c", 'd' to "d",
+        'e' to "[e3]", 'f' to "f", 'g' to "[g9]", 'h' to "h",
+        'i' to "[i1!]", 'j' to "j", 'k' to "k", 'l' to "[l1]",
+        'm' to "m", 'n' to "n", 'o' to "[o0]", 'p' to "p",
+        'q' to "q", 'r' to "r", 's' to "[s5]", 't' to "[t7]",
+        'u' to "u", 'v' to "v", 'w' to "w", 'x' to "x",
+        'y' to "y", 'z' to "[z2]"
+    )
+
 
     fun loadBlockedWords() {
-        val file = File(SurfChat.instance.dataFolder, "blocked.txt")
-        val start: Long = System.currentTimeMillis()
-
-        if (!file.exists()) {
-            file.getParentFile().mkdirs()
-            SurfChat.instance.saveResource("blocked.txt", false)
-        }
-
-        blockedWords.clear()
-        blockedPatterns.clear()
-
-        try {
-            BufferedReader(FileReader(file)).use { reader ->
-                val lines: List<String> = reader.lines()
-                    .map { obj: String -> obj.trim { it <= ' ' } }
-                    .filter { word: String -> word.isNotEmpty() }
-                    .toList()
-
-                blockedWords.addAll(lines)
-                blockedPatterns.addAll(
-                    lines.parallelStream()
-                        .map { word: String -> this.getRegex(word) }
-                        .map { regex: String -> Pattern.compile(regex, Pattern.CASE_INSENSITIVE) }
-                        .toList()
-                )
+        val duration = measureTimeMillis {
+            val path = SurfChat.instance.dataPath / "blocked.txt"
+            with(path) {
+                createDirectories()
+                if (!exists()) createFile()
             }
-        } catch (e: IOException) {
-            logger.error("Failed to read blocked.txt file", e)
+
+            blockedWords.clear()
+            blockedPatterns.clear()
+
+            path.useLines { lines ->
+                lines.map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .forEach {
+                        blockedWords.add(it)
+
+                        val regex = getRegex(it)
+                        blockedPatterns.add(Regex(regex, RegexOption.IGNORE_CASE))
+                    }
+            }
         }
 
-        val duration: Long = System.currentTimeMillis() - start
-        logger.info(Component.text("Loaded ", NamedTextColor.GREEN)
-                .append(Component.text(blockedWords.size, NamedTextColor.GOLD))
-                .append(Component.text(" blocked words and their regexes in ", NamedTextColor.GREEN))
-                .append(Component.text(duration, NamedTextColor.GOLD))
-                .append(Component.text("ms", NamedTextColor.GREEN))
-        )
+        log.atInfo()
+            .log("Loaded %s blocked words and their regexes in %sms", blockedWords.size, duration)
     }
 
 
     private fun getRegex(word: String): String {
-        val replacements: Object2ObjectMap<Char, String> = Object2ObjectOpenHashMap()
-        replacements['a'] = "[a@4]"
-        replacements['b'] = "[b8]"
-        replacements['c'] = "c"
-        replacements['d'] = "d"
-        replacements['e'] = "[e3]"
-        replacements['f'] = "f"
-        replacements['g'] = "[g9]"
-        replacements['h'] = "h"
-        replacements['i'] = "[i1!]"
-        replacements['j'] = "j"
-        replacements['k'] = "k"
-        replacements['l'] = "[l1]"
-        replacements['m'] = "m"
-        replacements['n'] = "n"
-        replacements['o'] = "[o0]"
-        replacements['p'] = "p"
-        replacements['q'] = "q"
-        replacements['r'] = "r"
-        replacements['s'] = "[s5]"
-        replacements['t'] = "[t7]"
-        replacements['u'] = "u"
-        replacements['v'] = "v"
-        replacements['w'] = "w"
-        replacements['x'] = "x"
-        replacements['y'] = "y"
-        replacements['z'] = "[z2]"
-
-        val regexBuilder: StringBuilder = StringBuilder()
+        val regexBuilder = StringBuilder(word.length)
         for (c in word.toCharArray()) {
-            regexBuilder.append(replacements.getOrDefault(c, c.toString() + ""))
+            regexBuilder.append(regexReplacements.getOrDefault(c, c.toString()))
         }
 
         return regexBuilder.toString()
     }
 
-    fun containsBlocked(message: Component): Boolean {
-        return blockedPatterns.stream().anyMatch { pattern: Pattern ->
-            pattern.matcher(PlainTextComponentSerializer.plainText().serialize(message)).find()
-        }
+    fun containsBlocked(message: Component) = blockedPatterns.any {
+        it.containsMatchIn(
+            PlainTextComponentSerializer.plainText().serialize(message)
+        )
     }
+
 
     fun containsLink(message: Component): Boolean {
         val plainMessage = PlainTextComponentSerializer.plainText().serialize(message)
-        val urlPattern = "((http|https|ftp)://)?([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&=]*)?"
-        val pattern: Pattern = Pattern.compile(urlPattern, Pattern.CASE_INSENSITIVE)
-        val matcher: Matcher = pattern.matcher(plainMessage)
 
-        while (matcher.find()) {
-            val domain: String = matcher.group(3)
-            if (allowedDomains.stream().noneMatch { suffix: String -> domain.endsWith(suffix) }) {
-                return true
-            }
+        return urlRegex.findAll(plainMessage).any { result ->
+            val domain = result.groupValues.getOrNull(3) ?: return@any false
+            allowedDomains.none { domain.endsWith(it) }
         }
-        return false
     }
 
     fun isValidInput(input: String): Boolean {
-        return VALID_CHARACTERS_PATTERN.matcher(input).matches()
+        return validCharactersRegex.matches(input)
     }
 
     fun isSpamming(uuid: UUID): Boolean {
-        val currentTime: Long = System.currentTimeMillis()
+        val currentTime = System.currentTimeMillis()
+        val lastMessageTime = rateLimit.getLong(uuid)
+        val count = messageCount.getInt(uuid)
 
-        rateLimit.putIfAbsent(uuid, currentTime)
-        messageCount.putIfAbsent(uuid, 0)
-
-        val lastMessageTime: Long = rateLimit[uuid] ?: 0
-        val count: Int = messageCount[uuid] ?: 0
-
-        if (currentTime - lastMessageTime < TIME_FRAME) {
-            if (count >= MESSAGE_LIMIT) {
-                return true
-            } else {
-                messageCount[uuid] = count + 1
-                return false
-            }
+        return if (currentTime - lastMessageTime < TIME_FRAME) {
+            (count >= MESSAGE_LIMIT).also { if (!it) messageCount[uuid] = count + 1 }
         } else {
             rateLimit[uuid] = currentTime
             messageCount[uuid] = 1
-            return false
+            false
         }
     }
 }

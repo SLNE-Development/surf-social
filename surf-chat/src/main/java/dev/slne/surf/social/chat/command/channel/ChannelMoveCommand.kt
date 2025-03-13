@@ -23,7 +23,7 @@ class ChannelMoveCommand(commandName: String) : CommandAPICommand(commandName) {
             val target = args.getUnchecked<OfflinePlayer>("player") ?: return@playerExecutor
             val channel = args.getUnchecked<Channel>("channel") ?: return@playerExecutor
 
-            channel.move(target, channel)
+            channel.move(target.uniqueId, channel)
 
             SurfChat.send(player, MessageBuilder().primary("Du hast ").info(target.name ?: target.uniqueId.toString()).primary(" in den Nachrichtenkanal ").info(channel.name).success(" verschoben."))
             SurfChat.send(target, MessageBuilder().primary("Du wurdest in den Nachrichtenkanal ").info(channel.name).success(" verschoben."))

@@ -8,6 +8,7 @@ import dev.slne.surf.social.chat.command.argument.ChannelArgument
 import dev.slne.surf.social.chat.`object`.Channel
 import dev.slne.surf.social.chat.util.MessageBuilder
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
@@ -22,12 +23,12 @@ class ChannelInfoCommand(commandName: String) : CommandAPICommand(commandName) {
     }
 
     private fun createInfoMessage(channel: Channel): Component {
-        val owner: OfflinePlayer = channel.owner ?: return MessageBuilder().error("Ein Fehler ist aufgetreten.").build()
+        val owner = channel.owner ?: return MessageBuilder().error("Ein Fehler ist aufgetreten.").build()
         return MessageBuilder()
             .primary("Kanalinformation: ").info(channel.name).newLine()
             .darkSpacer("   - ").variableKey("Beschreibung: ").variableValue(channel.description)
             .newLine()
-            .darkSpacer("   - ").variableKey("Besitzer: ").variableValue(owner.name ?: "Unbekannt")
+            .darkSpacer("   - ").variableKey("Besitzer: ").variableValue(Bukkit.getOfflinePlayer(owner).name ?: "Unbekannt")
             .newLine()
             .darkSpacer("   - ").variableKey("Status: ")
             .variableValue(if (channel.closed) "Geschlossen" else "Offen").newLine()
