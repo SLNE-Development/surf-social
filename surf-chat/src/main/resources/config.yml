@@ -4,3 +4,6 @@ database:
   database:
   username:
   password:
+
+setting:
+  players-until-message-block: 50

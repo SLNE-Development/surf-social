@@ -1,5 +1,6 @@
 package dev.slne.surf.social.chat.util
 
+import dev.slne.surf.social.chat.SurfChat
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
@@ -11,3 +12,5 @@ fun Iterable<UUID>.mapOfflinePlayerNamesTo(destination: MutableCollection<in Str
     mapNotNullTo(destination) { Bukkit.getOfflinePlayer(it).name }
 fun Iterable<UUID>.mapOnlinePlayersTo(destination: MutableCollection<in Player>) =
     mapNotNullTo(destination) { Bukkit.getPlayer(it) }
+
+fun Player.sendText(text: MessageBuilder, id: UUID = UUID.randomUUID()) = SurfChat.send(this, text, id)

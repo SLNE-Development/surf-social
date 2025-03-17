@@ -9,5 +9,6 @@ class SurfChatCommand(commandName: String) : CommandAPICommand(commandName) {
         subcommand(SurfChatDeleteCommand("delete"))
         subcommand(SurfChatChatClearCommand("clear"))
         subcommand(SurfChatSaveCommand("saveUsers"))
+        subcommand(SurfChatPlayerChatLimitCommand("setPlayerChatLimit"))
     }
 }
