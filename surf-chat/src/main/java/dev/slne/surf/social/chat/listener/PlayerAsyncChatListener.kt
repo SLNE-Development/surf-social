@@ -9,19 +9,27 @@ import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.util.Components
 import dev.slne.surf.social.chat.util.MessageBuilder
 import dev.slne.surf.social.chat.util.Permission
+import dev.slne.surf.social.chat.util.sendText
 import dev.slne.surf.surfapi.bukkit.api.SurfBukkitApi
 import dev.slne.surf.surfapi.core.api.SurfCoreApi
+import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.random
 
 import io.papermc.paper.event.player.AsyncChatEvent
+import kotlinx.coroutines.flow.merge
 
 import me.clip.placeholderapi.PlaceholderAPI
 import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.key.Key
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextReplacementConfig
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Bukkit
+import org.bukkit.Material
 import org.bukkit.entity.Player
 
 import org.bukkit.event.EventHandler
@@ -32,7 +40,7 @@ class PlayerAsyncChatListener : Listener {
     @EventHandler
     fun onChat(event: AsyncChatEvent) {
         val player = event.player
-        var plainMessage = PlainTextComponentSerializer.plainText().serialize(event.message())
+        var plainMessage = PlainTextComponentSerializer.plainText().serialize(event.message().parseItemPlaceholder(player))
 
         if (ChatFilterService.containsLink(event.message())) {
             event.isCancelled = true
@@ -96,7 +104,7 @@ class PlayerAsyncChatListener : Listener {
             return
         }
 
-        event.renderer {source, _, _, viewer ->
+        event.renderer { source, _, _, viewer ->
             Components.getDeleteComponent(viewer.toPlayer(), messageID)
                 .append(Components.getTeleportComponent(viewer.toPlayer(), source.name))
                 .append(MiniMessage.miniMessage().deserialize(PlaceholderAPI.setPlaceholders(source, "%luckperms_prefix% %player_name%")))
@@ -115,4 +123,23 @@ class PlayerAsyncChatListener : Listener {
     private fun getCountedPlayers(): Int {
         return Bukkit.getOnlinePlayers().count {!it.hasPermission(SurfChatPermissions.chatLimitBypass) }
     }
+
+    private fun Component.parseItemPlaceholder(player: Player): Component {
+        val stack = player.inventory.itemInMainHand
+
+        if (stack.type == Material.AIR) {
+            player.sendText(MessageBuilder().error("Du hast kein Item in der Hand!"))
+            return this
+        }
+
+        return this.replaceText(TextReplacementConfig.builder()
+            .match("[item]")
+            .replacement(when {
+                stack.amount > 1 -> text("${stack.amount}x ", Colors.VARIABLE_VALUE).append(stack.displayName())
+                else -> stack.displayName()
+            })
+            .build()
+        )
+    }
+
 }
