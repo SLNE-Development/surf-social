@@ -10,7 +10,7 @@ import dev.slne.surf.social.chat.util.sendText
 
 class SurfChatPlayerChatLimitCommand(commandName: String): CommandAPICommand(commandName) {
     init {
-        integerArgument("limit")
+        integerArgument("limit", min = 0)
         playerExecutor { player, args ->
             val limit: Int by args
 

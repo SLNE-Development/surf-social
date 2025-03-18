@@ -3,6 +3,7 @@ package dev.slne.surf.social.chat.listener
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.external.BasicPunishApi
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.permission.SurfChatPermissions
 import dev.slne.surf.social.chat.provider.ConfigurationProvider
 import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.util.Components
@@ -112,6 +113,6 @@ class PlayerAsyncChatListener : Listener {
     }
 
     private fun getCountedPlayers(): Int {
-        return Bukkit.getOnlinePlayers().filter { player: Player -> !player.hasPermission(Permission.CHAT_LIMIT_BYPASS.asPermission()) }.size
+        return Bukkit.getOnlinePlayers().count {!it.hasPermission(SurfChatPermissions.chatLimitBypass) }
     }
 }
