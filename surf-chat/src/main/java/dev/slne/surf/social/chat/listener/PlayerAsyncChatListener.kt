@@ -135,10 +135,11 @@ class PlayerAsyncChatListener : Listener {
 
         return this.replaceText(TextReplacementConfig.builder()
             .match("[item]")
-            .replacement(Component.text(when {
-                stack.amount > 1 -> "${stack.amount}x ${stack.type.name.lowercase().replace("_", " ")}"
-                else -> stack.type.name.lowercase().replace("_", " ")
-            }, Colors.VARIABLE_VALUE).hoverEvent(stack.asHoverEvent()))
+            .replacement(when {
+                stack.amount > 1 -> Component.text("${stack.amount}x ", Colors.GOLD).append(stack.displayName())
+                else -> stack.displayName()
+            })
+
             .build()
         )
     }
