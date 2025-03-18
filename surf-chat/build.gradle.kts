@@ -46,6 +46,8 @@ dependencies {
 surfPaperPluginApi {
     mainClass("dev.slne.surf.social.chat.SurfChat")
     authors.add("SLNE Development")
+
+    generateLibraryLoader(false)
 }
 
 

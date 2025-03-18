@@ -9,9 +9,11 @@ import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.util.Components
 import dev.slne.surf.social.chat.util.MessageBuilder
 import dev.slne.surf.social.chat.util.Permission
+import dev.slne.surf.social.chat.util.sendText
 import dev.slne.surf.surfapi.bukkit.api.SurfBukkitApi
 import dev.slne.surf.surfapi.core.api.SurfCoreApi
 import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.random
 
 import io.papermc.paper.event.player.AsyncChatEvent
@@ -123,23 +125,19 @@ class PlayerAsyncChatListener : Listener {
     }
 
     private fun Component.parseItemPlaceholder(player: Player): Component {
-        if (!PlainTextComponentSerializer.plainText().serialize(this).contains("[item]")) {
-            return this
-        }
-
         val stack = player.inventory.itemInMainHand
 
         if (stack.type == Material.AIR) {
+            player.sendText(MessageBuilder().error("Du hast kein Item in der Hand!"))
             return this
         }
 
         return this.replaceText(TextReplacementConfig.builder()
             .match("[item]")
             .replacement(when {
-                stack.amount > 1 -> Component.text("${stack.amount}x ", Colors.GOLD).append(stack.displayName())
+                stack.amount > 1 -> text("${stack.amount}x ", Colors.VARIABLE_VALUE).append(stack.displayName())
                 else -> stack.displayName()
             })
-
             .build()
         )
     }
