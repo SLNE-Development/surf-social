@@ -8,6 +8,7 @@ import dev.slne.surf.social.chat.listener.PlayerAsyncChatListener
 import dev.slne.surf.social.chat.listener.PlayerQuitListener
 import dev.slne.surf.social.chat.`object`.Message
 import dev.slne.surf.social.chat.permission.SurfChatPermissions
+import dev.slne.surf.social.chat.provider.ConfigurationProvider
 import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.service.ChatHistoryService
 import dev.slne.surf.social.chat.service.DatabaseService
@@ -33,6 +34,7 @@ class SurfChat : SuspendingJavaPlugin() {
 
         this.saveDefaultConfig()
 
+        ConfigurationProvider.load()
         ChatFilterService.loadBlockedWords()
         DatabaseService.connect()
 
@@ -43,6 +45,8 @@ class SurfChat : SuspendingJavaPlugin() {
     }
 
     override suspend fun onDisableAsync() {
+        ConfigurationProvider.save()
+
         DatabaseService.saveAll()
         DatabaseService.disconnect()
     }

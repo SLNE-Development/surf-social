@@ -3,9 +3,12 @@ package dev.slne.surf.social.chat.listener
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.external.BasicPunishApi
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.permission.SurfChatPermissions
+import dev.slne.surf.social.chat.provider.ConfigurationProvider
 import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.util.Components
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.social.chat.util.Permission
 import dev.slne.surf.surfapi.bukkit.api.SurfBukkitApi
 import dev.slne.surf.surfapi.core.api.SurfCoreApi
 import dev.slne.surf.surfapi.core.api.util.random
@@ -18,6 +21,7 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
 import org.bukkit.event.EventHandler
@@ -57,6 +61,12 @@ class PlayerAsyncChatListener : Listener {
         if (BasicPunishApi.isMuted(player)) {
             SurfChat.send(player, MessageBuilder().error("Du bist gemuted und kannst nicht chatten."))
             event.isCancelled = true
+            return
+        }
+
+        if(this.getCountedPlayers() > ConfigurationProvider.getMinimalPlayersUntilMessageBlock()) {
+            event.isCancelled = true
+            SurfChat.send(player, MessageBuilder().error("Der Chat ist momentan deaktiviert."))
             return
         }
 
@@ -100,5 +110,9 @@ class PlayerAsyncChatListener : Listener {
             return this
         }
         return null
+    }
+
+    private fun getCountedPlayers(): Int {
+        return Bukkit.getOnlinePlayers().count {!it.hasPermission(SurfChatPermissions.chatLimitBypass) }
     }
 }
