@@ -27,7 +27,7 @@ object Components {
             appendText("] ", Colors.DARK_SPACER)
 
             clickEvent(ClickEvent.runCommand("/surfchat delete $id"))
-            hoverEvent(text("Nachricht löschen", Colors.ERROR))
+            hoverEvent(text("Nachricht löschen", Colors.ERROR).asComponent())
         }
     }
 
@@ -48,7 +48,7 @@ object Components {
             appendText("] ", Colors.DARK_SPACER)
 
             clickEvent(ClickEvent.runCommand("/teleport $name"))
-            hoverEvent(text("Zum Spieler teleportieren", Colors.INFO))
+            hoverEvent(text("Zum Spieler teleportieren", Colors.INFO).asComponent())
         }
     }
 

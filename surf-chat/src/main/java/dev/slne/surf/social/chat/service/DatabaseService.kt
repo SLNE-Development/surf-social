@@ -1,8 +1,10 @@
 package dev.slne.surf.social.chat.service
 
+import com.google.gson.Gson
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dev.slne.surf.social.chat.SurfChat
+import dev.slne.surf.social.chat.history.SentMessage
 import dev.slne.surf.social.chat.`object`.ChatUser
 import dev.slne.surf.surfapi.core.api.util.logger
 import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
@@ -43,7 +45,8 @@ object DatabaseService {
         val sql = "CREATE TABLE IF NOT EXISTS surf_chat_user (" +
                 "uuid VARCHAR(36) PRIMARY KEY," +
                 "pm_enabled BOOLEAN NOT NULL," +
-                "ignore_list TEXT" +
+                "ignore_list TEXT," +
+                "sent_messages TEXT" +
                 ");"
 
         try {
@@ -60,7 +63,7 @@ object DatabaseService {
     }
 
     suspend fun loadUser(uuid: UUID): ChatUser = withContext(Dispatchers.IO) {
-        val sql = "SELECT uuid, pm_enabled, ignore_list FROM surf_chat_user WHERE uuid = ?"
+        val sql = "SELECT uuid, pm_enabled, ignore_list, sent_messages FROM surf_chat_user WHERE uuid = ?"
 
             try {
                 dataSource.connection.use { conn ->
@@ -70,6 +73,7 @@ object DatabaseService {
                         if (rs.next()) {
                             val ignoreList = mutableObjectSetOf<UUID>()
                             val ignoreListStr = rs.getString("ignore_list")
+                            val sentMessages = ChatUser.deserializeSentMessagesList(rs.getString("sent_messages"))
 
                             if (ignoreListStr.isNotEmpty()) {
                                 for (id in ignoreListStr.split(",").filter { it.isNotBlank() }) {
@@ -77,7 +81,7 @@ object DatabaseService {
                                 }
                             }
 
-                            return@withContext ChatUser(UUID.fromString(rs.getString("uuid")), rs.getBoolean("pm_enabled"), ignoreList)
+                            return@withContext ChatUser(UUID.fromString(rs.getString("uuid")), rs.getBoolean("pm_enabled"), ignoreList, sentMessages)
                         }
                     }
                 }
@@ -93,7 +97,7 @@ object DatabaseService {
 
     suspend fun saveUser(user: ChatUser) = withContext(Dispatchers.IO) {
         val sql =
-            "INSERT INTO surf_chat_user (uuid, pm_enabled, ignore_list) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE pm_enabled = ?, ignore_list = ?"
+            "INSERT INTO surf_chat_user (uuid, pm_enabled, ignore_list, sent_messages) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE pm_enabled = ?, ignore_list = ?, sent_messages = ?"
 
         try {
             dataSource.connection.use { conn ->
@@ -102,10 +106,13 @@ object DatabaseService {
                     pstmt.setBoolean(2, user.toggledPM)
 
                     val ignoreListStr = user.ignoreList.joinToString(",") { it.toString() }
+                    val sentMessages = user.serializeSentMessages()
 
                     pstmt.setString(3, ignoreListStr)
-                    pstmt.setBoolean(4, user.toggledPM)
-                    pstmt.setString(5, ignoreListStr)
+                    pstmt.setString(4, sentMessages)
+                    pstmt.setBoolean(5, user.toggledPM)
+                    pstmt.setString(6, ignoreListStr)
+                    pstmt.setString(7, sentMessages)
                     pstmt.executeUpdate()
                 }
             }
