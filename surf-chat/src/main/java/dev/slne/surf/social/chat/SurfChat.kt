@@ -31,6 +31,7 @@ class SurfChat : SuspendingJavaPlugin() {
         IgnoreCommand("ignore").register()
         TogglePmCommand("togglepm").register()
         ReplyCommand("reply").register()
+        SurfChatHistoryCommand("history").register() //temporär, kann entfernt werden
 
         this.saveDefaultConfig()
 

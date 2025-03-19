@@ -9,6 +9,8 @@ import dev.jorel.commandapi.kotlindsl.greedyStringArgument
 import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.external.BasicPunishApi
+import dev.slne.surf.social.chat.history.MessageType
+import dev.slne.surf.social.chat.history.SentMessage
 import dev.slne.surf.social.chat.`object`.ChatUser
 import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.service.ChatReplyService
@@ -48,36 +50,43 @@ class ReplyCommand(commandName: String) : CommandAPICommand(commandName) {
 
                 if (ChatFilterService.containsLink(MiniMessage.miniMessage().deserialize(message))) {
                     SurfChat.send(player, MessageBuilder().error("Bitte sende keine Links!"))
+                    ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000, MessageType.BLOCKED_LINK_DM))
                     return@launch
                 }
 
                 if (ChatFilterService.containsBlocked(MiniMessage.miniMessage().deserialize(message))) {
                     SurfChat.send(player, MessageBuilder().error("Bitte achte auf deine Wortwahl!"))
+                    ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,MessageType.BLOCKED_WORDS_DM))
                     return@launch
                 }
 
                 if (ChatFilterService.isSpamming(player.uniqueId)) {
                     SurfChat.send(player, MessageBuilder().error("Mal ganz ruhig hier, spam bitte nicht!"))
+                    ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,MessageType.BLOCKED_SPAM_DM))
                     return@launch
                 }
 
                 if (!ChatFilterService.isValidInput(message)) {
                     SurfChat.send(player, MessageBuilder().error("Bitte verwende keine unerlaubten Zeichen!"))
+                    ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,MessageType.BLOCKED_INVALID_DM))
                     return@launch
                 }
 
                 if (BasicPunishApi.isMuted(player)) {
                     SurfChat.send(player, MessageBuilder().error("Du bist gemuted und kannst nicht chatten."))
+                    ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,MessageType.BLOCKED_MUTED_DM))
                     return@launch
                 }
 
                 if (targetUser.toggledPM) {
                     SurfChat.send(player, MessageBuilder().error("Der Spieler hat Privatnachrichten deaktiviert."))
+                    ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,MessageType.BLOCKED_DISABLED_DM))
                     return@launch
                 }
 
                 if(user.isIgnoring(targetUser.uuid)) {
                     SurfChat.send(player, MessageBuilder().error("Du ignorierst den Spieler."))
+                    ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,MessageType.BLOCKED_IGNORING_DM))
                     return@launch
                 }
 
@@ -86,6 +95,8 @@ class ReplyCommand(commandName: String) : CommandAPICommand(commandName) {
                 }
 
                 SurfChat.send(player, MessageBuilder().suggest(MessageBuilder().darkSpacer(">>").error(" PM ").darkSpacer("| ").variableValue("Du").darkSpacer(" -> ").variableValue(target.name + ": ").white(message), MessageBuilder().primary("Clicke, um anzuworten."), "/msg " + target.name + " "))
+                ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,MessageType.SENT_DM))
+
             }
         }
     }

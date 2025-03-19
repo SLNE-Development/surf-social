@@ -46,7 +46,7 @@ object ChatFilterService {
         val duration = measureTimeMillis {
             val path = SurfChat.instance.dataPath / "blocked.txt"
             with(path) {
-                createDirectories()
+                //createDirectories()
                 if (!exists()) createFile()
             }
 
