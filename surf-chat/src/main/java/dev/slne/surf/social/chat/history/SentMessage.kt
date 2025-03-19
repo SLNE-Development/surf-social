@@ -1,51 +1,21 @@
-package dev.slne.surf.social.chat.history;
+package dev.slne.surf.social.chat.history
+
+import com.google.gson.Gson
+import java.util.*
 
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonWriter;
-import dev.slne.surf.social.chat.object.ChatUser;
-import kotlinx.serialization.encoding.Encoder;
-import kotlinx.serialization.json.Json;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+class SentMessage(val message: String, val timestamp: Long, val type: MessageType) {
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Date;
-import java.util.UUID;
-
-public class SentMessage {
-    private String message;
-    private long timestamp;
-    private MessageType type;
-
-    public SentMessage(String message, long timestamp, MessageType type) {
-        this.message = message;
-        this.timestamp = timestamp;
-        this.type = type;
+    fun serialize(): String {
+        return Gson().toJson(this, SentMessage::class.java)
     }
 
-    public static SentMessage deserialize(String json){
-        return new Gson().fromJson(json, SentMessage.class);
-    }
+    val date: Date
+        get() = Date(timestamp * 1000)
 
-    public String getMessage() {
-        return message;
+    companion object {
+        fun deserialize(json: String?): SentMessage {
+            return Gson().fromJson(json, SentMessage::class.java)
+        }
     }
-
-    public Long getTimestamp() {
-        return timestamp;
-    }
-
-    public MessageType getType() {
-        return type;
-    }
-
-    public String serialize(){
-        return new Gson().toJson(this, SentMessage.class);
-    }
-    public Date getDate(){
-        return new Date(getTimestamp()*1000);
-    }
-
 }
