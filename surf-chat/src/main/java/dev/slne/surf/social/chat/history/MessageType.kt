@@ -24,6 +24,7 @@ enum class MessageType {
         if (this.name.contains("WORDS", true)) msg += "(Verbotene Wörter)"
         if (this.name.contains("INVALID", true)) msg += "(Verwendung ungültiger Zeichen)"
         if (this.name.contains("MUTED", true)) msg += "(Stumm)"
+        if (this.name.contains("SPAM", true)) msg += "(Spam)"
         return msg
     }
     fun getColor():TextColor{
