@@ -10,6 +10,7 @@ import dev.slne.surf.social.chat.`object`.ChatUser
 import dev.slne.surf.social.chat.permission.SurfChatPermissions
 import dev.slne.surf.social.chat.provider.ConfigurationProvider
 import dev.slne.surf.social.chat.service.ChatFilterService
+import dev.slne.surf.social.chat.service.ChatLimitService
 import dev.slne.surf.social.chat.service.DatabaseService
 import dev.slne.surf.social.chat.util.Components
 import dev.slne.surf.social.chat.util.MessageBuilder
@@ -49,6 +50,7 @@ import org.bukkit.scheduler.BukkitRunnable
 import org.gradle.internal.impldep.com.amazonaws.services.kms.AWSKMSAsyncClient
 import org.jetbrains.annotations.Async
 import java.util.UUID
+import java.util.regex.Pattern
 import kotlin.reflect.jvm.internal.impl.metadata.ProtoBuf
 import kotlin.reflect.jvm.internal.impl.serialization.deserialization.SuspendFunctionTypeUtilKt
 
@@ -60,23 +62,9 @@ class PlayerAsyncChatListener : Listener {
 
         if(!ChatFilterService.validateCompleteMessage(player, event.message(),plainMessage, false)){
             event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Bitte verwende keine unerlaubten Zeichen!"))
-            saveMessage(player, plainMessage, MessageType.BLOCKED_INVALID)
             return
         }
 
-        if (BasicPunishApi.isMuted(player)) {
-            SurfChat.send(player, MessageBuilder().error("Du bist gemuted und kannst nicht chatten."))
-            event.isCancelled = true
-            saveMessage(player, plainMessage, MessageType.BLOCKED_MUTED)
-            return
-        }
-
-        if(this.getCountedPlayers() > ConfigurationProvider.getMinimalPlayersUntilMessageBlock()) {
-            event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Der Chat ist momentan deaktiviert."))
-            return
-        }
 
         val channel: Channel? = Channel.getChannel(player)
         val messageID: UUID = UUID.randomUUID()
@@ -101,7 +89,7 @@ class PlayerAsyncChatListener : Listener {
                         .append(Component.text(" $plainMessage"))
                 }
             }
-            saveMessage(player, plainMessage, MessageType.SENT)
+            ChatFilterService.saveMessage(player, plainMessage, MessageType.SENT)
             return
         }
 
@@ -112,17 +100,7 @@ class PlayerAsyncChatListener : Listener {
                 .append(Component.text(" >> "))
                 .append(Component.text(" $plainMessage"))
         }
-        saveMessage(player, plainMessage, MessageType.SENT)
-    }
-    fun saveMessage(player:Player, message:String, type : MessageType){
-        ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,type))
-    }
-    private fun saveMessage(player:Player, message:Component, type : MessageType){
-        if (message is TextComponent){
-            saveMessage(player, message.content(), type)
-        }else{
-            SurfChat.instance.componentLogger.error(Component.text("Could not cast $message to TextComponent for Serialization (dev.slne.surf.social.chat.listener.PlayerAsyncChatListener)"))
-        }
+        ChatFilterService.saveMessage(player, plainMessage, MessageType.SENT)
     }
 
     private fun Audience.toPlayer(): Player? {
@@ -132,12 +110,9 @@ class PlayerAsyncChatListener : Listener {
         return null
     }
 
-    private fun getCountedPlayers(): Int {
-        return Bukkit.getOnlinePlayers().count {!it.hasPermission(SurfChatPermissions.chatLimitBypass) }
-    }
-
     private fun Component.parseItemPlaceholder(player: Player): Component {
         val stack = player.inventory.itemInMainHand
+        if (!PlainTextComponentSerializer.plainText().serialize(this).contains("[item]")) return this
 
         if (stack.type == Material.AIR) {
             player.sendText(MessageBuilder().error("Du hast kein Item in der Hand!"))
@@ -145,10 +120,10 @@ class PlayerAsyncChatListener : Listener {
         }
 
         return this.replaceText(TextReplacementConfig.builder()
-            .match("[item]")
+            .match(Pattern.quote("[item]"))
             .replacement(when {
-                stack.amount > 1 -> text("${stack.amount}x ", Colors.VARIABLE_VALUE).append(stack.displayName())
-                else -> stack.displayName()
+                stack.amount > 1 -> text("${stack.amount}x ", Colors.VARIABLE_VALUE).append(Component.translatable(stack.translationKey()))
+                else -> Component.translatable(stack.translationKey())
             })
             .build()
         )
