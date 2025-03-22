@@ -7,3 +7,9 @@ database:
 
 setting:
   players-until-message-block: 50
+  chat-limits:
+  #Cooldown until a Player can send another Message in Ticks
+    cooldown: 200
+    cooldown-dm: 200
+    message-limit: 4 #Amount of messages it takes in "message-limit-cooldown" Ticks to set the player for "cooldown" on Chat-Cooldown
+    message-limit-cooldown: 400 #Interval in wich  the Player can not write more than "message-limit" messages

@@ -1,6 +1,7 @@
 package dev.slne.surf.social.chat.history
 
 import net.kyori.adventure.text.format.TextColor
+import java.lang.IllegalArgumentException
 
 enum class MessageType {
     SENT, SENT_DM,
@@ -34,5 +35,17 @@ enum class MessageType {
     }
     fun isDM():Boolean{
         return this.toString().endsWith("_DM", true)
+    }
+    object Builder{
+        fun getType(type:MessageType, isDM: Boolean):MessageType{
+            return if (!isDM) type
+            else{
+                try {
+                    MessageType.valueOf(type.toString()+"_DM")
+                }catch (value:IllegalArgumentException){
+                    type
+                }
+            }
+        }
     }
 }

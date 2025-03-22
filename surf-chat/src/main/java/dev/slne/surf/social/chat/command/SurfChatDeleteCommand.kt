@@ -6,6 +6,7 @@ import dev.jorel.commandapi.executors.CommandArguments
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import dev.jorel.commandapi.kotlindsl.integerArgument
 import dev.jorel.commandapi.kotlindsl.playerExecutor
+import dev.jorel.commandapi.kotlindsl.stringArgument
 import dev.slne.surf.social.chat.service.ChatHistoryService
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -16,7 +17,7 @@ import kotlin.math.min
 class SurfChatDeleteCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
         withPermission("surf.chat.command.surf-chat.delete")
-        integerArgument("messageID")
+        stringArgument("messageID") //War n bug
         playerExecutor{player, args ->
             val messageID = args.getUnchecked<String>("messageID") ?: return@playerExecutor
 

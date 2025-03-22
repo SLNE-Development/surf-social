@@ -27,7 +27,6 @@ class SurfChatHistoryCommand(commandName:String):CommandAPICommand(commandName) 
             var target: OfflinePlayer? = args.getUnchecked<OfflinePlayer>("player")
             if(target == null) target = player
             player.sendMessage("Loading User \"${target.name}\"...")
-            //Theoretisch bräuchte ich hier eine Möglichkeit die Existenz zu prüfen
             SurfChat.instance.launch {
                 val chatPlayer = ChatUser.getUser(target.uniqueId)
 
@@ -45,7 +44,7 @@ class SurfChatHistoryCommand(commandName:String):CommandAPICommand(commandName) 
         consoleExecutor { consoleCommandSender, args ->
             val target: OfflinePlayer? = args.getUnchecked<OfflinePlayer>("player")
             if(target != null)consoleCommandSender.sendMessage("Loading User \"${target.name}\"...")
-            //Theoretisch bräuchte ich hier eine Möglichkeit die Existenz zu prüfen
+            //Wenn man den Command Behalten möchte: Seiten zum scrollen
             if (target == null) {
                 consoleCommandSender.sendMessage("Invalid Player")
                 return@consoleExecutor

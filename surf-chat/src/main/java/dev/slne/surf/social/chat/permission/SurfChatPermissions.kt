@@ -6,4 +6,5 @@ object SurfChatPermissions: PermissionRegistry() {
     val deletePerms = create("surf.chat.delete")
     val teleportPerms = create("surf.chat.teleport")
     val chatLimitBypass = create("surf.chat.limit.bypass")
+    val chatCooldownBypass = create("surf.chat.cooldown.bypass")
 }

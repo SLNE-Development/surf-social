@@ -1,16 +1,27 @@
 package dev.slne.surf.social.chat.service
 
 import dev.slne.surf.social.chat.SurfChat
+import dev.slne.surf.social.chat.external.BasicPunishApi
+import dev.slne.surf.social.chat.history.MessageType
+import dev.slne.surf.social.chat.history.SentMessage
+import dev.slne.surf.social.chat.`object`.ChatUser
+import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.social.chat.listener.PlayerAsyncChatListener
+import dev.slne.surf.social.chat.util.sendText
+import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.adventure.text
 import dev.slne.surf.surfapi.core.api.util.*
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+import org.bukkit.Material
+import org.bukkit.entity.Player
 import java.util.*
 import kotlin.io.path.*
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.seconds
 
 
-private const val MESSAGE_LIMIT = 5
 
 object ChatFilterService {
 
@@ -46,7 +57,7 @@ object ChatFilterService {
         val duration = measureTimeMillis {
             val path = SurfChat.instance.dataPath / "blocked.txt"
             with(path) {
-                createDirectories()
+                //createDirectories()
                 if (!exists()) createFile()
             }
 
@@ -98,18 +109,36 @@ object ChatFilterService {
     fun isValidInput(input: String): Boolean {
         return validCharactersRegex.matches(input)
     }
-
-    fun isSpamming(uuid: UUID): Boolean {
-        val currentTime = System.currentTimeMillis()
-        val lastMessageTime = rateLimit.getLong(uuid)
-        val count = messageCount.getInt(uuid)
-
-        return if (currentTime - lastMessageTime < TIME_FRAME) {
-            (count >= MESSAGE_LIMIT).also { if (!it) messageCount[uuid] = count + 1 }
-        } else {
-            rateLimit[uuid] = currentTime
-            messageCount[uuid] = 1
-            false
+    fun validateCompleteMessage(player:Player, message:Component,plainMessage:String, isDM:Boolean):Boolean{
+        when {
+            containsLink(message) -> {
+                SurfChat.send(player, MessageBuilder().error("Bitte sende keine Links!"))
+                saveMessage(player, plainMessage, MessageType.Builder.getType(MessageType.BLOCKED_LINK, isDM))
+                return false
+            }
+            containsBlocked(message) -> {
+                SurfChat.send(player, MessageBuilder().error("Bitte achte auf deine Wortwahl!"))
+                saveMessage(player, plainMessage, MessageType.Builder.getType(MessageType.BLOCKED_WORDS, isDM))
+                return false
+            }
+            !isValidInput(plainMessage) -> {
+                SurfChat.send(player, MessageBuilder().error("Bitte verwende keine unerlaubten Zeichen!"))
+                saveMessage(player, plainMessage, MessageType.Builder.getType(MessageType.BLOCKED_INVALID, isDM))
+                return false
+            }
+            BasicPunishApi.isMuted(player) -> {
+                SurfChat.send(player, MessageBuilder().error("Du bist gemuted und kannst nicht chatten."))
+                saveMessage(player, plainMessage, MessageType.Builder.getType(MessageType.BLOCKED_MUTED, isDM))
+                return false
+            }
+            !ChatLimitService.validateMessage(player, plainMessage, isDM) -> {
+                return false
+            }
+            else -> return true
         }
+    }
+
+    fun saveMessage(player:Player, message:String, type : MessageType){
+        ChatUser.saveSentMessage(player.uniqueId, SentMessage(message,System.currentTimeMillis()/1000,type))
     }
 }

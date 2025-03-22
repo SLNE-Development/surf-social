@@ -1,4 +1,4 @@
-package dev.slne.surf.social.chat.command
+package dev.slne.surf.social.chat.command.config
 
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.kotlindsl.getValue

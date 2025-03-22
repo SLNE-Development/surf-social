@@ -13,7 +13,7 @@ object ChannelProvider {
     fun handleQuit(player: Player) {
         val channel = Channel.getChannel(player) ?: return
 
-        if (channel.owner == player) {
+        if (channel.owner == player.uniqueId) {
             channel.delete()
         }
     }
