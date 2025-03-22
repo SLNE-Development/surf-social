@@ -90,6 +90,10 @@ class ReplyCommand(commandName: String) : CommandAPICommand(commandName) {
                     return@launch
                 }
 
+                if(!ChatFilterService.validateCompleteMessage(player, Component.text(message),message, true)){
+                    return@launch
+                }
+
                 if(!targetUser.isIgnoring(player.uniqueId)) {
                     SurfChat.send(Bukkit.getPlayer(uuid) ?: return@launch, MessageBuilder().suggest(MessageBuilder().darkSpacer(">>").error(" PM ").darkSpacer("| ").variableValue(player.name).darkSpacer(" ->").variableValue(" Dich: ").white(message), MessageBuilder().primary("Clicke, um anzuworten."), "/msg " + player.name + " "))
                 }
