@@ -30,10 +30,7 @@ class PrivateMessageCommand(commandName: String) : CommandAPICommand(commandName
             SurfChat.instance.launch {
                 val target = args.getUnchecked<Player>("player") ?: return@launch
                 val message = args.getUnchecked<String>("message") ?: return@launch
-
-                if (!ChatFilterService.validateCompleteMessage(player, Component.text(message),message, true)){
-                    return@launch
-                }
+                
 
                 val targetUser: ChatUser = ChatUser.getUser(target.uniqueId)
                 val user: ChatUser = ChatUser.getUser(player.uniqueId)
