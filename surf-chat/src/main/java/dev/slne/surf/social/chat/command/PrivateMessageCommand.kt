@@ -83,6 +83,10 @@ class PrivateMessageCommand(commandName: String) : CommandAPICommand(commandName
                     return@launch
                 }
 
+                if(!ChatFilterService.validateCompleteMessage(player, Component.text(message),message, true)){
+                    return@launch
+                }
+
                 if(!targetUser.isIgnoring(player.uniqueId)) {
                     SurfChat.send(target, MessageBuilder().suggest(MessageBuilder().darkSpacer(">>").error(" PM ").darkSpacer("| ").variableValue(player.name).darkSpacer(" ->").variableValue(" Dich: ").white(message), MessageBuilder().primary("Klicke, um zu antworten."), "/msg " + player.name + " "))
                 }
