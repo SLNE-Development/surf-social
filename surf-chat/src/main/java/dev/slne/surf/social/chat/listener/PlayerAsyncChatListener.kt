@@ -58,28 +58,7 @@ class PlayerAsyncChatListener : Listener {
         val player = event.player
         var plainMessage = PlainTextComponentSerializer.plainText().serialize(event.message().parseItemPlaceholder(player))
 
-        if (ChatFilterService.containsLink(event.message())) {
-            event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Bitte sende keine Links!"))
-            saveMessage(player, plainMessage, MessageType.BLOCKED_LINK)
-            return
-        }
-
-        if (ChatFilterService.containsBlocked(event.message())) {
-            event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Bitte achte auf deine Wortwahl!"))
-            saveMessage(player, plainMessage, MessageType.BLOCKED_WORDS)
-            return
-        }
-
-        if (ChatFilterService.isSpamming(event.player.uniqueId)) {
-            event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Mal ganz ruhig hier, spam bitte nicht!"))
-            saveMessage(player, plainMessage, MessageType.BLOCKED_SPAM)
-            return
-        }
-
-        if (!ChatFilterService.isValidInput(plainMessage)) {
+        if(!ChatFilterService.validateCompleteMessage(player, event.message(),plainMessage, false)){
             event.isCancelled = true
             SurfChat.send(player, MessageBuilder().error("Bitte verwende keine unerlaubten Zeichen!"))
             saveMessage(player, plainMessage, MessageType.BLOCKED_INVALID)
