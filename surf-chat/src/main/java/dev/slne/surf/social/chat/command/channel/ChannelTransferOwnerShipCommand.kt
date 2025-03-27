@@ -36,7 +36,11 @@ class ChannelTransferOwnerShipCommand(commandName: String) : CommandAPICommand(c
                 return@playerExecutor
             }
 
-            if (!confirm.equals("confirm", ignoreCase = true) && !confirm.equals("yes", ignoreCase = true) && !confirm.equals("true", ignoreCase = true) && !confirm.equals("ja", ignoreCase = true)) {
+            if (!confirm.equals("confirm", ignoreCase = true) && !confirm.equals(
+                    "yes",
+                    ignoreCase = true
+                ) && !confirm.equals("true", ignoreCase = true) && !confirm.equals("ja", ignoreCase = true)
+            ) {
                 player.send {
                     appendPrefix()
                     error("Bitte bestätige den Vorgang.")

@@ -8,7 +8,7 @@ import dev.slne.surf.social.chat.service.ChatHistoryService
 class SurfChatChatClearCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
         withPermission("surf.chat.command.clear")
-        playerExecutor{ player, _ ->
+        playerExecutor { player, _ ->
             ChatHistoryService.clearChat()
             player.send {
                 appendPrefix()

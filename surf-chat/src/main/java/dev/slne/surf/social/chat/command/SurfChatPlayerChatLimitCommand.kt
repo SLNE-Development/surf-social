@@ -7,7 +7,7 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.provider.ConfigurationProvider
 import dev.slne.surf.social.chat.send
 
-class SurfChatPlayerChatLimitCommand(commandName: String): CommandAPICommand(commandName) {
+class SurfChatPlayerChatLimitCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
         integerArgument("limit", min = 0)
         playerExecutor { player, args ->

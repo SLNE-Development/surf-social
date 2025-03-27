@@ -11,7 +11,7 @@ import dev.slne.surf.social.chat.service.DatabaseService
 class SurfChatSaveCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
         withPermission("surf.chat.command.save")
-        playerExecutor{ player, _ ->
+        playerExecutor { player, _ ->
             SurfChat.instance.launch {
                 ChatUser.cache.asMap().values.forEach { user ->
                     DatabaseService.saveUser(user)

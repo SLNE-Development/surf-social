@@ -21,12 +21,12 @@ class ReplyCommand(commandName: String) : CommandAPICommand(commandName) {
         withPermission("surf.chat.command.reply")
         withAliases("r")
         greedyStringArgument("message")
-        playerExecutor{ player, args ->
+        playerExecutor { player, args ->
             SurfChat.instance.launch {
                 val message = args.getUnchecked<String>("message") ?: return@launch
                 val uuid = ChatReplyService.get(player.uniqueId)
 
-                if(uuid == null) {
+                if (uuid == null) {
                     player.send {
                         appendPrefix()
                         error("Du hast niemanden, dem du antworten kannst.")
@@ -36,7 +36,7 @@ class ReplyCommand(commandName: String) : CommandAPICommand(commandName) {
 
                 val target = Bukkit.getPlayer(uuid)
 
-                if(target == null) {
+                if (target == null) {
                     player.send {
                         appendPrefix()
                         error("Du hast niemanden, dem du antworten kannst.")
@@ -44,7 +44,7 @@ class ReplyCommand(commandName: String) : CommandAPICommand(commandName) {
                     return@launch
                 }
 
-                if(target == player) {
+                if (target == player) {
                     player.send {
                         appendPrefix()
                         error("Du kannst dir nicht selbst schreiben.")
@@ -103,7 +103,7 @@ class ReplyCommand(commandName: String) : CommandAPICommand(commandName) {
                     return@launch
                 }
 
-                if(user.isIgnoring(targetUser.uuid)) {
+                if (user.isIgnoring(targetUser.uuid)) {
                     player.send {
                         appendPrefix()
                         error("Du ignorierst den Spieler.")
@@ -111,7 +111,7 @@ class ReplyCommand(commandName: String) : CommandAPICommand(commandName) {
                     return@launch
                 }
 
-                if(!targetUser.isIgnoring(player.uniqueId)) {
+                if (!targetUser.isIgnoring(player.uniqueId)) {
                     val user = Bukkit.getPlayer(uuid) ?: return@launch
                     user.send {
                         appendPrefix()

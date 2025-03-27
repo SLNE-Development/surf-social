@@ -11,7 +11,7 @@ class TogglePmCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
         withPermission("surf.chat.command.toggle")
 
-        playerExecutor{ player, _ ->
+        playerExecutor { player, _ ->
             SurfChat.instance.launch {
                 val user: ChatUser = ChatUser.getUser(player.uniqueId)
 

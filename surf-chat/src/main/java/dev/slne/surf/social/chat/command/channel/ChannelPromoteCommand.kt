@@ -14,7 +14,7 @@ class ChannelPromoteCommand(commandName: String) : CommandAPICommand(commandName
             val channel: Channel? = Channel.getChannel(player)
             val target = args.getUnchecked<OfflinePlayer>("player") ?: return@playerExecutor
 
-            if(channel == null) {
+            if (channel == null) {
                 player.send {
                     appendPrefix()
                     error("Du bist in keinem Nachrichtenkanal.")

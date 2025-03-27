@@ -10,7 +10,7 @@ class SurfChatDeleteCommand(commandName: String) : CommandAPICommand(commandName
     init {
         withPermission("surf.chat.command.surf-chat.delete")
         integerArgument("messageID")
-        playerExecutor{player, args ->
+        playerExecutor { player, args ->
             val messageID = args.getUnchecked<String>("messageID") ?: return@playerExecutor
 
             ChatHistoryService.removeMessage(player.uniqueId, UUID.fromString(messageID))

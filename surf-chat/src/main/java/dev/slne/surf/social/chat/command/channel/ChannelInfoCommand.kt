@@ -12,7 +12,8 @@ class ChannelInfoCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
         withOptionalArguments(ChannelArgument("channel"))
         playerExecutor { player, args ->
-            val channel = args.getOrDefaultUnchecked<Channel?>("channel", Channel.getChannel(player)) ?: return@playerExecutor
+            val channel =
+                args.getOrDefaultUnchecked<Channel?>("channel", Channel.getChannel(player)) ?: return@playerExecutor
 
             player.sendMessage(createInfoMessage(channel))
         }
