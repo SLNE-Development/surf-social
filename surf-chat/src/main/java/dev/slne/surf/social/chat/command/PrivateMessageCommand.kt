@@ -117,7 +117,7 @@ class PrivateMessageCommand(commandName: String) : CommandAPICommand(commandName
 
                     }
                 }
-                target.send {
+                player.send {
                     appendPrefix()
                     darkSpacer(">> ")
                     error("PM")
