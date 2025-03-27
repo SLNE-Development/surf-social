@@ -7,6 +7,7 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.command.argument.ChannelMembersArgument
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
@@ -19,22 +20,34 @@ class ChannelPromoteCommand(commandName: String) : CommandAPICommand(commandName
             val target = args.getUnchecked<OfflinePlayer>("player") ?: return@playerExecutor
 
             if(channel == null) {
-                SurfChat.send(player, MessageBuilder().error("Du bist in keinem Nachrichtenkanal."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist in keinem Nachrichtenkanal.")
+                }
                 return@playerExecutor
             }
 
             if (!channel.isOwner(player)) {
-                SurfChat.send(
-                    player,
-                    MessageBuilder().error("Du bist nicht der Besitzer des Nachrichtenkanals.")
-                )
+                player.send {
+                    appendPrefix()
+                    error("Du bist nicht der Besitzer des Nachrichtenkanals.")
+                }
                 return@playerExecutor
             }
 
             channel.promote(target.uniqueId)
 
-            SurfChat.send(player, MessageBuilder().primary("Du hast den Spieler ").info(target.name ?: target.uniqueId.toString()).success(" befördert."))
-            SurfChat.send(target, MessageBuilder().primary("Du wurdest ").success("befördert"))
+            player.send {
+                appendPrefix()
+                primary("Du hast den Spieler ")
+                info(target.name ?: target.uniqueId.toString())
+                success(" befördert.")
+            }
+            player.send {
+                appendPrefix()
+                primary("Du wurdest ")
+                success("befördert")
+            }
         }
     }
 }

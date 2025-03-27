@@ -7,23 +7,35 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.command.argument.ChannelInviteArgument
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import org.bukkit.entity.Player
 
 class ChannelAcceptInviteCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
         withArguments(ChannelInviteArgument("channel"))
 
-        playerExecutor {player, args ->
+        playerExecutor { player, args ->
             val channel = args.getUnchecked<Channel>("channel") ?: return@playerExecutor
 
             if (!channel.hasInvite(player)) {
-                SurfChat.send(player, MessageBuilder().primary("Du hast keine Einladung in den Nachrichtenkanal ").info(channel.name).error(" erhalten."))
+                player.send {
+                    appendPrefix()
+                    primary("Du hast keine Einladung in den Nachrichtenkanal ")
+                    info(channel.name)
+                    primary(" erhalten.")
+                }
                 return@playerExecutor
             }
 
             channel.acceptInvite(player)
-            SurfChat.send(player, MessageBuilder().primary("Du hast die Einladung in den Nachrichtenkanal ").info(channel.name).success(" angenommen."))
+            player.send {
+                appendPrefix()
+                primary("Du hast die Einladung in den Nachrichtenkanal ")
+                info(channel.name)
+                success(" angenommen.")
+            }
         }
     }
 }

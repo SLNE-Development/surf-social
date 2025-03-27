@@ -7,7 +7,9 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.command.argument.ChannelMembersArgument
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
@@ -19,19 +21,39 @@ class ChannelBanCommand(commandName: String) : CommandAPICommand(commandName) {
             val target = args.getUnchecked<OfflinePlayer>("player") ?: return@playerExecutor
 
             if (channel == null) {
-                SurfChat.send(player, MessageBuilder().error("Du bist in keinem Nachrichtenkanal."))
+                SurfChat.send(player, buildText {
+                    appendPrefix()
+                    error("Du bist in keinem Nachrichten.")
+                })
                 return@playerExecutor
             }
 
             if (!channel.isModerator(player) && !channel.isOwner(player)) {
-                SurfChat.send(player, MessageBuilder().primary("Du bist ").error("kein Moderator ").primary("in deinem Kanal."))
+                player.send {
+                    appendPrefix()
+                    primary("Du bist ")
+                    error("kein Moderator")
+                    primary(" in diesem Kanal.")
+                }
                 return@playerExecutor
             }
 
             channel.ban(target.uniqueId)
 
-            SurfChat.send(player, MessageBuilder().primary("Du hast ").info(target.name ?: target.uniqueId.toString()).primary(" aus dem Nachrichtenkanal ").info(channel.name).error(" verbannt."))
-            SurfChat.send(target, MessageBuilder().primary("Du wurdest aus dem Nachrichtenkanal ").info(channel.name).error(" verbannt."))
+            player.send {
+                appendPrefix()
+                primary("Du hast ")
+                info(target.name ?: target.uniqueId.toString())
+                primary(" aus dem Nachrichtenkanal ")
+                info(channel.name)
+                error(" verbannt.")
+            }
+            player.send {
+                appendPrefix()
+                primary("Du wurdest aus dem Nachrichtenkanal ")
+                info(channel.name)
+                error(" verbannt.")
+            }
         }
 
     }

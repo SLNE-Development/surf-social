@@ -6,7 +6,9 @@ import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import org.bukkit.entity.Player
 
 class ChannelDeleteCommand(commandName: String) : CommandAPICommand(commandName) {
@@ -14,21 +16,36 @@ class ChannelDeleteCommand(commandName: String) : CommandAPICommand(commandName)
         playerExecutor { player, _ ->
             val channel: Channel? = Channel.getChannel(player)
             if (channel == null) {
-                SurfChat.send(player, MessageBuilder().error("Du bist in keinem Nachrichtenkanal."))
+                SurfChat.send(player, buildText {
+                    appendPrefix()
+                    error("Du bist in keinem Nachrichtenkanal.")
+                })
                 return@playerExecutor
             }
 
             if (!channel.isOwner(player)) {
-                SurfChat.send(player, MessageBuilder().error("Du bist nicht der Besitzer des Nachrichtenkanals."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist nicht der Besitzer des Nachrichtenkanals.")
+                }
                 return@playerExecutor
             }
 
             if (!channel.delete()) {
-                SurfChat.send(player, MessageBuilder().error("Der Nachrichtenkanal konnte nicht gelöscht werden."))
+                player.send {
+                    appendPrefix()
+                    error("Der Nachrichtenkanal konnte nicht gelöscht werden.")
+                }
                 return@playerExecutor
             }
 
-            SurfChat.send(player, MessageBuilder().primary("Du hast den Nachrichtenkanal ").info(channel.name).error(" gelöscht."))
+            player.send {
+                appendPrefix()
+                primary("Du hast den Nachrichtenkanal ")
+                info(channel.name)
+                error(" gelöscht.")
+            }
+
         }
 
     }

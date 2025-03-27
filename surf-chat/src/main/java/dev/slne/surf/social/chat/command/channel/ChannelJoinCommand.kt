@@ -7,6 +7,7 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.command.argument.ChannelArgument
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
 import org.bukkit.entity.Player
 
@@ -17,17 +18,35 @@ class ChannelJoinCommand(commandName: String) : CommandAPICommand(commandName) {
             val channel = args.getUnchecked<Channel>("channel") ?: return@playerExecutor
 
             if (channel.closed && !channel.hasInvite(player)) {
-                SurfChat.send(player, MessageBuilder().error("Der Nachrichtenkanal ist privat."))
+                player.send {
+                    appendPrefix()
+                    error("Der Nachrichtenkanal ist privat.")
+                }
                 return@playerExecutor
             }
 
             if (Channel.getChannel(player) != null) {
-                SurfChat.send(player, MessageBuilder().error("Du bist bereits in einem Nachrichtenkanal."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist bereits in einem Nachrichtenkanal.")
+                }
                 return@playerExecutor
             }
 
             channel.join(player.uniqueId)
-            SurfChat.send(player, MessageBuilder().primary("Du bist dem Nachrichtenkanal ").info(channel.name).success(" beigetreten."))
+
+            player.send {
+                appendPrefix()
+                primary("Du bist dem Nachrichtenkanal ")
+                info(channel.name)
+                success(" beigetreten.")
+            }
+            player.send {
+                appendPrefix()
+                primary("Du bist dem Nachrichtenkanal ")
+                info(channel.name)
+                success(" beigetreten.")
+            }
         }
     }
 }

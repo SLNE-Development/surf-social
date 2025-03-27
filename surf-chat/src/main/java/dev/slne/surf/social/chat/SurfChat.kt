@@ -14,6 +14,8 @@ import dev.slne.surf.social.chat.service.ChatHistoryService
 import dev.slne.surf.social.chat.service.DatabaseService
 import dev.slne.surf.social.chat.util.MessageBuilder
 import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.builder.SurfComponentBuilder
+import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
@@ -71,5 +73,19 @@ class SurfChat : SuspendingJavaPlugin() {
         }
     }
 }
+
+
+fun OfflinePlayer.send(messageID: UUID = UUID.randomUUID(), block: SurfComponentBuilder.() -> Unit) {
+    val player = player ?: return
+    val message = SurfComponentBuilder(block)
+    player.sendMessage(message)
+    ChatHistoryService.insertNewMessage(
+        uniqueId,
+        Message("#Unknown", name ?: uniqueId.toString(), message),
+        messageID
+    )
+
+}
+
 
 val plugin get() = SurfChat.instance

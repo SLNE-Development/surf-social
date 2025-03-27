@@ -9,7 +9,11 @@ import dev.jorel.commandapi.kotlindsl.stringArgument
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.command.argument.ChannelMembersArgument
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.adventure.clickSuggestsCommand
+import net.kyori.adventure.text.Component
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
@@ -23,17 +27,33 @@ class ChannelTransferOwnerShipCommand(commandName: String) : CommandAPICommand(c
             val confirm = args.getOrDefaultUnchecked("confirm", "")
 
             if (channel == null) {
-                SurfChat.send(player, MessageBuilder().error("Du bist in keinem Nachrichtenkanal."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist in keinem Nachrichtenkanal.")
+                }
                 return@playerExecutor
             }
 
             if (!channel.isOwner(player)) {
-                SurfChat.send(player, MessageBuilder().error("Du bist nicht der Besitzer des Nachrichtenkanals."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist nicht der Besitzer des Nachrichtenkanals.")
+                }
                 return@playerExecutor
             }
 
             if (!confirm.equals("confirm", ignoreCase = true) && !confirm.equals("yes", ignoreCase = true) && !confirm.equals("true", ignoreCase = true) && !confirm.equals("ja", ignoreCase = true)) {
-                SurfChat.send(player, MessageBuilder().error("Bitte bestätige den Vorgang.").command(MessageBuilder().darkSpacer(" [").info("Bestätigen").darkSpacer("]"), MessageBuilder().info("Klicke hier, um den Vorgang zu bestätigen."), "/channel transferOwnership " + target.name + " confirm"))
+                player.send {
+                    appendPrefix()
+                    error("Bitte bestätige den Vorgang.")
+                    append {
+                        darkSpacer("[")
+                        info("Bestätigen")
+                        darkSpacer("]")
+                        clickSuggestsCommand("/channel transferOwnership " + target.name + " confirm")
+                        hoverEvent(Component.text("Klicke hier, um den Vorgang zu bestätigen.", Colors.INFO))
+                    }
+                }
                 return@playerExecutor
             }
 
@@ -47,8 +67,18 @@ class ChannelTransferOwnerShipCommand(commandName: String) : CommandAPICommand(c
 
             channel.register()
 
-            SurfChat.send(player, MessageBuilder().primary("Du hast den Besitzer des Nachrichtenkanals an ").info(target.name ?: target.uniqueId.toString()).success(" übergeben."))
-            SurfChat.send(target, MessageBuilder().primary("Du wurdest zum Besitzer des Nachrichtenkanals ").info(channel.name).success(" ernannt."))
+            player.send {
+                appendPrefix()
+                primary("Du hast den Besitzer des Nachrichtenkanals an ")
+                info(target.name ?: target.uniqueId.toString())
+                success(" übergeben.")
+            }
+            player.send {
+                appendPrefix()
+                primary("Du wurdest zum Besitzer des Nachrichtenkanals ")
+                info(channel.name)
+                success(" ernannt.")
+            }
         }
     }
 }

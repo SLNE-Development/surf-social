@@ -7,7 +7,9 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.command.argument.ChannelArgument
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import org.bukkit.entity.Player
 
 class ChannelForceDeleteCommand(commandName: String) : CommandAPICommand(commandName) {
@@ -18,11 +20,18 @@ class ChannelForceDeleteCommand(commandName: String) : CommandAPICommand(command
             val channel = args.getUnchecked<Channel>("channel") ?: return@playerExecutor
 
             if (!channel.delete()) {
-                SurfChat.send(player, MessageBuilder().error("Der Nachrichtenkanal konnte nicht gelöscht werden."))
+                player.send {
+                    appendPrefix()
+                    error("Der Nachrichtenkanal konnte nicht gelöscht werden.")
+                }
                 return@playerExecutor
             }
-
-            SurfChat.send(player, MessageBuilder().primary("Der Nachrichtenkanal ").info(channel.name).error(" wurde gelöscht."))
+            player.send {
+                appendPrefix()
+                primary("Der Nachrichtenkanal ")
+                info(channel.name)
+                error(" wurde gelöscht.")
+            }
         }
     }
 }

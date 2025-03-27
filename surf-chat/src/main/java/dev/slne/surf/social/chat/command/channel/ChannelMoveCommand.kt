@@ -9,6 +9,7 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.command.argument.ChannelArgument
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
@@ -25,8 +26,20 @@ class ChannelMoveCommand(commandName: String) : CommandAPICommand(commandName) {
 
             channel.move(target.uniqueId, channel)
 
-            SurfChat.send(player, MessageBuilder().primary("Du hast ").info(target.name ?: target.uniqueId.toString()).primary(" in den Nachrichtenkanal ").info(channel.name).success(" verschoben."))
-            SurfChat.send(target, MessageBuilder().primary("Du wurdest in den Nachrichtenkanal ").info(channel.name).success(" verschoben."))
+            player.send {
+                appendPrefix()
+                primary("Du hast ")
+                info(target.name ?: target.uniqueId.toString())
+                primary(" in den Nachrichtenkanal ")
+                info(channel.name)
+                success(" verschoben.")
+            }
+            player.send {
+                appendPrefix()
+                primary("Du wurdest in den Nachrichtenkanal ")
+                info(channel.name)
+                success(" verschoben.")
+            }
         }
     }
 }

@@ -7,7 +7,9 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.Channel
 import dev.slne.surf.social.chat.provider.ChannelProvider
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 
 class ChannelCreateCommand(commandName: String) : CommandAPICommand(commandName) {
     init {
@@ -15,7 +17,10 @@ class ChannelCreateCommand(commandName: String) : CommandAPICommand(commandName)
         withOptionalArguments(TextArgument("description"))
         playerExecutor { player, args ->
             if (Channel.getChannel(player) != null) {
-                SurfChat.send(player, MessageBuilder().error("Du bist bereits in einem Nachrichtenkanal."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist bereits in einem Nachrichtenkanal.")
+                }
                 return@playerExecutor
             }
 
@@ -29,12 +34,22 @@ class ChannelCreateCommand(commandName: String) : CommandAPICommand(commandName)
             )
 
             if (ChannelProvider.exists(name)) {
-                SurfChat.send(player, MessageBuilder().error("Der Nachrichtenkanal ").info(name).error(" existiert bereits."))
+                player.send {
+                    appendPrefix()
+                    error("Der Nachrichtenkanal ")
+                    info(name)
+                    error(" existiert bereits.")
+                }
                 return@playerExecutor
             }
 
             channel.register()
-            SurfChat.send(player, MessageBuilder().primary("Du hast den Nachrichtenkanal ").info(channel.name).success(" erstellt."))
+            player.send {
+                appendPrefix()
+                primary("Du hast den Nachrichtenkanal ")
+                info(channel.name)
+                success(" erstellt.")
+            }
         }
     }
 }

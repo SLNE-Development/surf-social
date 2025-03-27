@@ -10,6 +10,7 @@ import dev.slne.surf.social.chat.`object`.Channel
 import dev.slne.surf.social.chat.provider.ChannelProvider
 import dev.slne.surf.social.chat.util.MessageBuilder
 import dev.slne.surf.social.chat.util.PageableMessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
@@ -22,21 +23,18 @@ class ChannelListCommand(commandName: String) : CommandAPICommand(commandName) {
             val message = PageableMessageBuilder()
             val page = args.getOrDefaultUnchecked("page", 1)
 
-            var index = 0
-
             message.setPageCommand("/channel list %page%")
 
-            for (channel in ChannelProvider.channels.values) {
-                index++
-
+            for ((index, channel) in ChannelProvider.channels.values.withIndex()) {
                 message.addLine(
-                    MessageBuilder().variableValue("$index. ").primary(channel.name)
-                        .darkSpacer(" (")
-                        .info((channel.members.size + channel.moderators.size + 1).toString())
-                        .darkSpacer(")").build().hoverEvent(
-                            this.createInfoMessage(channel)
-                        )
-                )
+                    buildText {
+                        variableValue("$index. ")
+                        primary(channel.name)
+                        darkSpacer(" (")
+                        info((channel.members.size + channel.moderators.size + 1))
+                        darkSpacer(")")
+                        hoverEvent(createInfoMessage(channel))
+                    })
             }
             message.send(player, page)
         }
@@ -45,19 +43,35 @@ class ChannelListCommand(commandName: String) : CommandAPICommand(commandName) {
     private fun createInfoMessage(channel: Channel): Component {
         val owner = channel.owner ?: return MessageBuilder().error("Ein Fehler ist aufgetreten.").build()
         val ownerPlayer = Bukkit.getOfflinePlayer(owner)
-        return MessageBuilder()
-            .primary("Kanalinformation: ").info(channel.name).newLine()
-            .darkSpacer("   - ").variableKey("Beschreibung: ").variableValue(channel.description)
-            .newLine()
-            .darkSpacer("   - ").variableKey("Besitzer: ").variableValue(ownerPlayer.name ?: ownerPlayer.uniqueId.toString())
-            .newLine()
-            .darkSpacer("   - ").variableKey("Status: ")
-            .variableValue(if (channel.closed) "Geschlossen" else "Offen").newLine()
-            .darkSpacer("   - ").variableKey("Mitglieder: ")
-            .variableValue((channel.members.size + channel.moderators.size + 1).toString())
-            .newLine()
-            .darkSpacer("   - ").variableKey("Einladungen: ")
-            .variableValue(channel.invites.size.toString()).newLine()
-            .build()
+        return buildText {
+            primary("Kanalinformation: ")
+            info(channel.name)
+            appendNewline()
+
+            darkSpacer("   - ")
+            variableKey("Beschreibung: ")
+            variableValue(channel.description)
+            appendNewline()
+
+            darkSpacer("   - ")
+            variableKey("Besitzer: ")
+            variableValue(ownerPlayer.name ?: ownerPlayer.uniqueId.toString())
+            appendNewline()
+
+            darkSpacer("   - ")
+            variableKey("Status: ")
+            variableValue(if (channel.closed) "Geschlossen" else "Offen")
+            appendNewline()
+
+            darkSpacer("   - ")
+            variableKey("Mitglieder: ")
+            variableValue((channel.members.size + channel.moderators.size + 1).toString())
+            appendNewline()
+
+            darkSpacer("   - ")
+            variableKey("Einladungen: ")
+            variableValue(channel.invites.size.toString())
+            appendNewline()
+        }
     }
 }

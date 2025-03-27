@@ -7,7 +7,9 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.command.argument.ChannelMembersArgument
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
@@ -16,22 +18,36 @@ class ChannelDemoteCommand(commandName: String) : CommandAPICommand(commandName)
         withArguments(ChannelMembersArgument("player"))
         playerExecutor { player, args ->
             val channel: Channel? = Channel.getChannel(player)
-                val target = args.getUnchecked<OfflinePlayer>("player") ?: return@playerExecutor
+            val target = args.getUnchecked<OfflinePlayer>("player") ?: return@playerExecutor
 
             if (channel == null) {
-                SurfChat.send(player, MessageBuilder().error("Du bist in keinem Nachrichtenkanal."))
+                SurfChat.send(player, buildText {
+                    error("Du bist in keinem Nachrichtenkanal.")
+                })
                 return@playerExecutor
             }
 
             if (!channel.isOwner(player)) {
-                SurfChat.send(player, MessageBuilder().error("Du bist nicht der Besitzer des Nachrichtenkanals."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist nicht der Besitzer des Nachrichtenkanals.")
+                }
                 return@playerExecutor
             }
 
             channel.demote(target.uniqueId)
 
-            SurfChat.send(player, MessageBuilder().primary("Du hast den Spieler ").info(target.name ?: target.uniqueId.toString()).error(" degradiert."))
-            SurfChat.send(target, MessageBuilder().primary("Du wurdest ").error("degradiert"))
+            player.send {
+                appendPrefix()
+                primary("Du hast ")
+                info(target.name ?: target.uniqueId.toString())
+                primary(" degradiert.")
+            }
+            player.send {
+                appendPrefix()
+                primary("Du wurdest ")
+                error("degradiert.")
+            }
         }
     }
 }

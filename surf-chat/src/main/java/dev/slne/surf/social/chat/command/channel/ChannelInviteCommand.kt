@@ -7,7 +7,12 @@ import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.Channel
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.util.MessageBuilder
+import dev.slne.surf.surfapi.core.api.messages.Colors
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
+import dev.slne.surf.surfapi.core.api.messages.adventure.clickSuggestsCommand
+import net.kyori.adventure.text.Component
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 
@@ -19,19 +24,46 @@ class ChannelInviteCommand(commandName: String) : CommandAPICommand(commandName)
             val target = args.getUnchecked<OfflinePlayer>("player") ?: return@playerExecutor
 
             if (channel == null) {
-                SurfChat.send(player, MessageBuilder().error("Du bist in keinem Nachrichtenkanal."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist in keinem Nachrichtenkanal.")
+                }
                 return@playerExecutor
             }
 
             if (!channel.isModerator(player) && !channel.isOwner(player)) {
-                SurfChat.send(player, MessageBuilder().error("Du bist nicht der Moderator oder Besitzer des Nachrichtenkanals."))
+                player.send {
+                    appendPrefix()
+                    error("Du bist nicht der Moderator oder Besitzer des Nachrichtenkanals.")
+                }
                 return@playerExecutor
             }
 
             channel.invite(target.uniqueId)
 
-            SurfChat.send(player, MessageBuilder().primary("Du hast ").info(target.name ?: target.uniqueId.toString()).primary(" in den Nachrichtenkanal ").info(channel.name).success(" eingeladen."))
-            SurfChat.send(target, MessageBuilder().primary("Du wurdest in den Nachrichtenkanal ").info(channel.name).success(" eingeladen. ").command(MessageBuilder().darkSpacer("[").success("Beitreten").darkSpacer("]"), MessageBuilder().success("Klicke, um beizutreten"), "/channel accept " + channel.name))
+            player.send {
+                appendPrefix()
+                primary("Du hast ")
+                info(target.name ?: target.uniqueId.toString())
+                primary(" in den Nachrichtenkanal ")
+                info(channel.name)
+                success(" eingeladen.")
+            }
+
+            player.send {
+                appendPrefix()
+                primary("Du wurdest in den Nachrichtenkanal ")
+                info(channel.name)
+                success(" eingeladen. ")
+                append {
+                    darkSpacer("[")
+                    success("Beitreten")
+                    darkSpacer("]")
+                    clickSuggestsCommand("/channel accept " + channel.name)
+                    hoverEvent(Component.text("Klicke, um beizutreten", Colors.INFO))
+                }
+                success("Klicke, um beizutreten")
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ import dev.jorel.commandapi.arguments.CustomArgument
 import dev.jorel.commandapi.arguments.StringArgument
 import dev.slne.surf.social.chat.`object`.Channel
 import dev.slne.surf.social.chat.util.mapOfflinePlayerNamesTo
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.util.emptyObjectSet
 import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -22,12 +23,20 @@ class ChannelMembersArgument(nodeName: String) :
             val player = Bukkit.getOfflinePlayer(info.input())
             val uniqueId = player.uniqueId
             val channel = Channel.getChannel(uniqueId)
-                ?: throw CustomArgumentException.fromMessageBuilder(MessageBuilder("Du bist in keinem Kanal, oder dieser ist invalid."))
+                ?: throw CustomArgumentException.fromAdventureComponent(
+                    buildText {
+                        error("Du bist in keinem Kanal, oder dieser ist invalid!")
+                    }
+                )
 
             if (!channel.isMember(uniqueId) && !channel.isOwner(uniqueId)
                 && !channel.isModerator(uniqueId)
             ) {
-                throw CustomArgumentException.fromMessageBuilder(MessageBuilder("Player is not a member of the channel: ").appendArgInput())
+                throw CustomArgumentException.fromAdventureComponent(
+                    buildText {
+                        error("Player is not a member of the channel: ${info.input()}")
+                    }
+                )
             }
 
             player

@@ -5,6 +5,7 @@ import dev.slne.surf.social.chat.external.BasicPunishApi
 import dev.slne.surf.social.chat.`object`.Channel
 import dev.slne.surf.social.chat.permission.SurfChatPermissions
 import dev.slne.surf.social.chat.provider.ConfigurationProvider
+import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.util.Components
 import dev.slne.surf.social.chat.util.MessageBuilder
@@ -44,37 +45,55 @@ class PlayerAsyncChatListener : Listener {
 
         if (ChatFilterService.containsLink(event.message())) {
             event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Bitte sende keine Links!"))
+            player.send {
+                appendPrefix()
+                error("Bitte sende keine Links!")
+            }
             return
         }
 
         if (ChatFilterService.containsBlocked(event.message())) {
             event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Bitte achte auf deine Wortwahl!"))
+            player.send {
+                appendPrefix()
+                error("Bitte achte auf deine Wortwahl!")
+            }
             return
         }
 
         if (ChatFilterService.isSpamming(event.player.uniqueId)) {
             event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Mal ganz ruhig hier, spam bitte nicht!"))
+            player.send {
+                appendPrefix()
+                error("Mal ganz ruhig hier, spam bitte nicht!")
+            }
             return
         }
 
         if (!ChatFilterService.isValidInput(plainMessage)) {
             event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Bitte verwende keine unerlaubten Zeichen!"))
+            player.send {
+                appendPrefix()
+                error("Bitte verwende keine unerlaubten Zeichen!")
+            }
             return
         }
 
         if (BasicPunishApi.isMuted(player)) {
-            SurfChat.send(player, MessageBuilder().error("Du bist gemuted und kannst nicht chatten."))
+            player.send {
+                appendPrefix()
+                error("Du bist stummgeschaltet und kannst nicht schreiben.")
+            }
             event.isCancelled = true
             return
         }
 
         if(this.getCountedPlayers() > ConfigurationProvider.getMinimalPlayersUntilMessageBlock()) {
             event.isCancelled = true
-            SurfChat.send(player, MessageBuilder().error("Der Chat ist momentan deaktiviert."))
+            player.send {
+                appendPrefix()
+                error("Der Chat ist momentan deaktiviert.")
+            }
             return
         }
 
@@ -128,7 +147,10 @@ class PlayerAsyncChatListener : Listener {
         val stack = player.inventory.itemInMainHand
 
         if (stack.type == Material.AIR) {
-            player.sendText(MessageBuilder().error("Du hast kein Item in der Hand!"))
+            player.send {
+                appendPrefix()
+                error("Du hast kein Item in der Hand!")
+            }
             return this
         }
 
