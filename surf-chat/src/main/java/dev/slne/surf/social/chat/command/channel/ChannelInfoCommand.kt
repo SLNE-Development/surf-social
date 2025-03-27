@@ -1,18 +1,12 @@
 package dev.slne.surf.social.chat.command.channel
 
 import dev.jorel.commandapi.CommandAPICommand
-import dev.jorel.commandapi.executors.CommandArguments
-import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.command.argument.ChannelArgument
 import dev.slne.surf.social.chat.`object`.Channel
-import dev.slne.surf.social.chat.send
-import dev.slne.surf.social.chat.util.MessageBuilder
 import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
-import org.bukkit.OfflinePlayer
-import org.bukkit.entity.Player
 
 class ChannelInfoCommand(commandName: String) : CommandAPICommand(commandName) {
     init {

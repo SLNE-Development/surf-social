@@ -6,7 +6,6 @@ import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.ChatUser
 import dev.slne.surf.social.chat.send
-import dev.slne.surf.social.chat.util.MessageBuilder
 
 class TogglePmCommand(commandName: String) : CommandAPICommand(commandName) {
     init {

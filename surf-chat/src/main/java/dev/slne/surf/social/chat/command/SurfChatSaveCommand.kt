@@ -7,7 +7,6 @@ import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.ChatUser
 import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.service.DatabaseService
-import dev.slne.surf.social.chat.util.MessageBuilder
 
 class SurfChatSaveCommand(commandName: String) : CommandAPICommand(commandName) {
     init {

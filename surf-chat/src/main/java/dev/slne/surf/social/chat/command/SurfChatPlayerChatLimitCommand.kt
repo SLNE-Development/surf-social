@@ -6,8 +6,6 @@ import dev.jorel.commandapi.kotlindsl.integerArgument
 import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.slne.surf.social.chat.provider.ConfigurationProvider
 import dev.slne.surf.social.chat.send
-import dev.slne.surf.social.chat.util.MessageBuilder
-import dev.slne.surf.social.chat.util.sendText
 
 class SurfChatPlayerChatLimitCommand(commandName: String): CommandAPICommand(commandName) {
     init {
@@ -16,7 +14,7 @@ class SurfChatPlayerChatLimitCommand(commandName: String): CommandAPICommand(com
             val limit: Int by args
 
             ConfigurationProvider.setMinimalPlayersUntilMessageBlock(limit)
-                        player.send {
+            player.send {
                 appendPrefix()
                 primary("Du hast das ")
                 info("Chatlimit")

@@ -4,12 +4,9 @@ import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.arguments.TextArgument
 import dev.jorel.commandapi.kotlindsl.getValue
 import dev.jorel.commandapi.kotlindsl.playerExecutor
-import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.Channel
 import dev.slne.surf.social.chat.provider.ChannelProvider
 import dev.slne.surf.social.chat.send
-import dev.slne.surf.social.chat.util.MessageBuilder
-import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 
 class ChannelCreateCommand(commandName: String) : CommandAPICommand(commandName) {
     init {

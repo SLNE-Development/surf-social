@@ -2,10 +2,6 @@ package dev.slne.surf.social.chat.command
 
 import com.github.shynixn.mccoroutine.folia.launch
 import dev.jorel.commandapi.CommandAPICommand
-import dev.jorel.commandapi.arguments.GreedyStringArgument
-import dev.jorel.commandapi.arguments.PlayerArgument
-import dev.jorel.commandapi.executors.CommandArguments
-import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import dev.jorel.commandapi.kotlindsl.greedyStringArgument
 import dev.jorel.commandapi.kotlindsl.playerArgument
 import dev.jorel.commandapi.kotlindsl.playerExecutor
@@ -14,9 +10,7 @@ import dev.slne.surf.social.chat.external.BasicPunishApi
 import dev.slne.surf.social.chat.`object`.ChatUser
 import dev.slne.surf.social.chat.send
 import dev.slne.surf.social.chat.service.ChatFilterService
-import dev.slne.surf.social.chat.util.MessageBuilder
 import dev.slne.surf.surfapi.core.api.messages.Colors
-import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.clickSuggestsCommand
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage

@@ -5,7 +5,6 @@ import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.kotlindsl.getValue
 import dev.jorel.commandapi.kotlindsl.offlinePlayerArgument
 import dev.jorel.commandapi.kotlindsl.playerExecutor
-import dev.slne.surf.social.chat.SurfChat
 import dev.slne.surf.social.chat.`object`.ChatUser
 import dev.slne.surf.social.chat.plugin
 import dev.slne.surf.social.chat.send
