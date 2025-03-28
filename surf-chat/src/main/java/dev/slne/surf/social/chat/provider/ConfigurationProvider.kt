@@ -16,6 +16,11 @@ object ConfigurationProvider {
         TICKS_COOLDOWN_PER_PRIVATE_MESSAGE = plugin.config.getInt("setting.chat-limits.cooldown-dm")
         MESSAGE_LIMIT = plugin.config.getInt("setting.chat-limits.message-limit")
         MESSAGE_LIMIT_COOLDOWN = plugin.config.getInt("setting.chat-limits.message-limit-cooldown")
+        val list:List<String> = plugin.config.getList("setting.punishments") as List<String>
+        list.forEach {
+            val punishment = ChatPunishment.buildFromArgs(it)
+            DEFAULT_PUNISHMENTS[punishment.getPunishment()] = punishment
+        }
 
     }
 
