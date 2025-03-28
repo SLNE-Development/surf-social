@@ -24,9 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 
 
 object ChatFilterService {
-
-    private val log = logger()
-    private val blockedWords = mutableObjectSetOf<String>()
+    
     private val allowedDomains = mutableObjectSetOf<String>()
 
     private val blockedPatterns = mutableObjectSetOf<Regex>()
