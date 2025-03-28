@@ -40,41 +40,6 @@ object ChatFilterService {
     private val urlRegex =
         "((http|https|ftp)://)?([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&=]*)?".toRegex(RegexOption.IGNORE_CASE)
 
-    private val TIME_FRAME = 10.seconds.inWholeMilliseconds
-
-    private val regexReplacements = char2ObjectMapOf(
-        'a' to "[a@4]", 'b' to "[b8]", 'c' to "c", 'd' to "d",
-        'e' to "[e3]", 'f' to "f", 'g' to "[g9]", 'h' to "h",
-        'i' to "[i1!]", 'j' to "j", 'k' to "k", 'l' to "[l1]",
-        'm' to "m", 'n' to "n", 'o' to "[o0]", 'p' to "p",
-        'q' to "q", 'r' to "r", 's' to "[s5]", 't' to "[t7]",
-        'u' to "u", 'v' to "v", 'w' to "w", 'x' to "x",
-        'y' to "y", 'z' to "[z2]"
-    )
-
-
-    fun loadBlockedWords() {
-        val duration = measureTimeMillis {
-            val path = SurfChat.instance.dataPath / "blocked.txt"
-            with(path) {
-                //createDirectories()
-                if (!exists()) createFile()
-            }
-
-            blockedWords.clear()
-            blockedPatterns.clear()
-
-            path.useLines { lines ->
-                lines.map { it.trim() }
-                    .filter { it.isNotEmpty() }
-                    .forEach {
-                        blockedWords.add(it)
-
-                        val regex = getRegex(it)
-                        blockedPatterns.add(Regex(regex, RegexOption.IGNORE_CASE))
-                    }
-            }
-        }
 
         log.atInfo()
             .log("Loaded %s blocked words and their regexes in %sms", blockedWords.size, duration)
