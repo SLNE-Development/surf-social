@@ -56,11 +56,6 @@ object ChatFilterService {
                 saveMessage(player, plainMessage, MessageType.Builder.getType(MessageType.BLOCKED_LINK, isDM))
                 return false
             }
-            containsBlocked(message) -> {
-                SurfChat.send(player, MessageBuilder().error("Bitte achte auf deine Wortwahl!"))
-                saveMessage(player, plainMessage, MessageType.Builder.getType(MessageType.BLOCKED_WORDS, isDM))
-                return false
-            }
             !isValidInput(plainMessage) -> {
                 SurfChat.send(player, MessageBuilder().error("Bitte verwende keine unerlaubten Zeichen!"))
                 saveMessage(player, plainMessage, MessageType.Builder.getType(MessageType.BLOCKED_INVALID, isDM))
