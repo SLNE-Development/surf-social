@@ -41,24 +41,8 @@ object ChatFilterService {
         "((http|https|ftp)://)?([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&=]*)?".toRegex(RegexOption.IGNORE_CASE)
 
 
-        log.atInfo()
-            .log("Loaded %s blocked words and their regexes in %sms", blockedWords.size, duration)
-    }
-
-
-    private fun getRegex(word: String): String {
-        val regexBuilder = StringBuilder(word.length)
-        for (c in word.toCharArray()) {
-            regexBuilder.append(regexReplacements.getOrDefault(c, c.toString()))
-        }
-
-        return regexBuilder.toString()
-    }
-
-    fun containsBlocked(message: Component) = blockedPatterns.any {
-        it.containsMatchIn(
-            PlainTextComponentSerializer.plainText().serialize(message)
-        )
+    fun containsBlocked(message: String):ChatPunishment?{
+        return WordBlacklistProvider.getPunishment(message)
     }
 
 
