@@ -70,6 +70,14 @@ class SurfChat : SuspendingJavaPlugin() {
                 messageID
             )
         }
+
+        fun send(text: Component, receiver:Audience, messageID: UUID = UUID.randomUUID()){
+            if (receiver is Player){
+                send(receiver, text, messageID)
+            }else{
+                receiver.sendMessage(Colors.PREFIX.append(text))
+            }
+        }
     }
 }
 
