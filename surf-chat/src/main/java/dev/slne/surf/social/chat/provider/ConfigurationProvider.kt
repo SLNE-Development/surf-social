@@ -1,5 +1,6 @@
 package dev.slne.surf.social.chat.provider
 
+import dev.slne.surf.social.chat.`object`.ChatPunishment
 import dev.slne.surf.social.chat.plugin
 
 object ConfigurationProvider {
@@ -8,6 +9,7 @@ object ConfigurationProvider {
     private var TICKS_COOLDOWN_PER_PRIVATE_MESSAGE = 200
     private var MESSAGE_LIMIT = 4
     private var MESSAGE_LIMIT_COOLDOWN = 400
+    private var DEFAULT_PUNISHMENTS = HashMap<ChatPunishment.Punishment, ChatPunishment>()
 
 
     fun load() {
@@ -80,6 +82,17 @@ object ConfigurationProvider {
 
     fun setMessageLimitCooldown(value: Int){
         MESSAGE_LIMIT_COOLDOWN = value
+    }
+
+    fun getDefaultPunishment(punishment: ChatPunishment.Punishment): ChatPunishment {
+        if (!DEFAULT_PUNISHMENTS.containsKey(punishment)) DEFAULT_PUNISHMENTS[punishment] = ChatPunishment.getDefaultPunishments()[punishment]!!
+        return DEFAULT_PUNISHMENTS[punishment]!!
+    }
+
+    fun updateDefaultPunishment(newPunishment: ChatPunishment){
+        newPunishment.also {
+            DEFAULT_PUNISHMENTS[newPunishment.getPunishment()] = it
+        }
     }
 
 }

@@ -13,3 +13,12 @@ setting:
     cooldown-dm: 200
     message-limit: 4 #Amount of messages it takes in "message-limit-cooldown" Ticks to set the player for "cooldown" on Chat-Cooldown
     message-limit-cooldown: 400 #Interval in wich  the Player can not write more than "message-limit" messages
+  punishments:
+    - '{"punishment":"NOTIFY","message":"Bitte achte auf deine Wortwahl"}'
+    - '{"punishment":"MUTE","time":600,"message":"Bitte überdenke deine Ausdrucksweise
+    und nimm in %time wieder am Chat teil."}'
+    - '{"punishment":"KICK","message":"Bitte überdenke deine Ausdrucksweise und komm
+    dann wieder zurück, wenn du dich in der Lage fühlst, angemessene Unterhaltungen
+    zu führen."}'
+    - '{"punishment":"BAN","time":86400,"message":"Bitte überdenke deine Ausdrucksweise
+    und komm in %time wieder zurück."}'

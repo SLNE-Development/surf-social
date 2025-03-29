@@ -9,21 +9,28 @@ import dev.slne.surf.social.chat.listener.PlayerQuitListener
 import dev.slne.surf.social.chat.`object`.Message
 import dev.slne.surf.social.chat.permission.SurfChatPermissions
 import dev.slne.surf.social.chat.provider.ConfigurationProvider
+import dev.slne.surf.social.chat.provider.WordBlacklistProvider
 import dev.slne.surf.social.chat.service.ChatFilterService
 import dev.slne.surf.social.chat.service.ChatHistoryService
 import dev.slne.surf.social.chat.service.DatabaseService
 import dev.slne.surf.social.chat.util.MessageBuilder
 import dev.slne.surf.surfapi.core.api.messages.Colors
+import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
+import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
 import java.util.*
+import kotlin.io.path.div
 
 class SurfChat : SuspendingJavaPlugin() {
     override suspend fun onEnableAsync() {
         CommandAPI.unregister("msg")
         CommandAPI.unregister("tell")
         CommandAPI.unregister("w")
+
+        WordBlacklistProvider.instance = WordBlacklistProvider(instance.dataPath / "blocked.txt")
 
         PrivateMessageCommand("msg").register()
         ChannelCommand("channel").register()
@@ -32,11 +39,11 @@ class SurfChat : SuspendingJavaPlugin() {
         TogglePmCommand("togglepm").register()
         ReplyCommand("reply").register()
         SurfChatHistoryCommand("history").register() //temporär, kann entfernt werden
+        WordBlacklistCommand("blacklist").register()
 
         this.saveDefaultConfig()
 
         ConfigurationProvider.load()
-        ChatFilterService.loadBlockedWords()
         DatabaseService.connect()
 
         Bukkit.getPluginManager().registerEvents(PlayerAsyncChatListener(), this)
@@ -47,6 +54,7 @@ class SurfChat : SuspendingJavaPlugin() {
 
     override suspend fun onDisableAsync() {
         ConfigurationProvider.save()
+        WordBlacklistProvider.instance.save(instance.dataPath / "blocked.txt")
 
         DatabaseService.saveAll()
         DatabaseService.disconnect()
