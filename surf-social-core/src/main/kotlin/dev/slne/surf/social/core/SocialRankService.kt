@@ -1,8 +1,7 @@
 package dev.slne.surf.social.core
 
-import it.unimi.dsi.fastutil.objects.ObjectSet
-import java.util.UUID
-import kotlin.time.Duration
+import dev.slne.surf.surfapi.core.api.util.requiredService
+import java.util.*
 
 interface SocialRankService {
     suspend fun getRank(minecraftUuid: UUID): SocialRankData
@@ -13,4 +12,10 @@ interface SocialRankService {
         val rank: String,
         val rankEndTime: Long?
     )
+
+    companion object {
+        val INSTANCE = requiredService<SocialRankService>()
+    }
 }
+
+val socialRankService get() = SocialRankService.INSTANCE

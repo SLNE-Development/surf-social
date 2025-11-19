@@ -1,5 +1,6 @@
 package dev.slne.surf.social.core
 
+import dev.slne.surf.surfapi.core.api.util.requiredService
 import it.unimi.dsi.fastutil.objects.ObjectList
 import java.util.*
 
@@ -16,4 +17,10 @@ interface SocialTrophyService {
         val awardedAt: Long,
         val awardedBy: String
     )
+
+    companion object {
+        val INSTANCE = requiredService<SocialTrophyService>()
+    }
 }
+
+val socialTrophyService get() = SocialTrophyService.INSTANCE
