@@ -8,3 +8,8 @@ surfPaperPluginApi {
 
     authors.add("red")
 }
+
+dependencies {
+    api(project(":surf-social-core"))
+    runtimeOnly(project(":surf-social-backend"))
+}
