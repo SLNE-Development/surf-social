@@ -7,3 +7,8 @@ buildscript {
         classpath("dev.slne.surf:surf-api-gradle-plugin:1.21.10+")
     }
 }
+
+allprojects {
+    group = "dev.slne.surf.social"
+    version = findProperty("version") as String
+}
