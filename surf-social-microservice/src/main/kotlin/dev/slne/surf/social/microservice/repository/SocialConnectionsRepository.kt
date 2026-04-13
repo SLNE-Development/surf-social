@@ -21,8 +21,10 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.*
 import java.util.concurrent.TimeUnit
+import org.slf4j.LoggerFactory
 
 object SocialConnectionsRepository {
+    private val logger = LoggerFactory.getLogger(SocialConnectionsRepository::class.java)
     private val httpClient = HttpClient.newBuilder()
         .followRedirects(HttpClient.Redirect.NORMAL)
         .build()
@@ -85,7 +87,8 @@ object SocialConnectionsRepository {
             } else {
                 discordId.toString()
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            logger.warn("Failed to fetch Discord name for id {}: {}", discordId, e.message)
             discordId.toString()
         }
     }
@@ -115,7 +118,8 @@ object SocialConnectionsRepository {
             } else {
                 twitchId.toString()
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            logger.warn("Failed to fetch Twitch name for id {}: {}", twitchId, e.message)
             twitchId.toString()
         }
     }
