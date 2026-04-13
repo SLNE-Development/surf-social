@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DiscordConnectionResponsePacket(
-    val connection: DiscordConnection
+    val connection: DiscordConnection?
 ) : RabbitResponsePacket()
