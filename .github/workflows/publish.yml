@@ -11,7 +11,7 @@ env:
   SLNE_SNAPSHOTS_REPO_PASSWORD: ${{ secrets.SLNE_SNAPSHOTS_REPO_PASSWORD }}
   SLNE_RELEASES_REPO_USERNAME: ${{ secrets.SLNE_RELEASES_REPO_USERNAME }}
   SLNE_RELEASES_REPO_PASSWORD: ${{ secrets.SLNE_RELEASES_REPO_PASSWORD }}
-  MODULE_REGEX: "surf-social-paper.*-all\\.jar$|surf-social-microservice.*-all\\.jar$"
+  MODULE_REGEX: "surf-social-paper.*-all\\.jar$|surf-social-microservice.*-all\\.jar$|surf-social-velocity.*-all\\.jar$"
   DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
 jobs:
