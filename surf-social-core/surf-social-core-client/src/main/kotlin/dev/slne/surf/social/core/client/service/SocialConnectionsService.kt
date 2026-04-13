@@ -9,19 +9,19 @@ import dev.slne.surf.social.core.common.rabbit.packet.request.FindTwitchConnecti
 import java.util.*
 
 object SocialConnectionsService {
-    suspend fun getConnection(
-        connectionClass: Class<out SocialConnection>,
+    @Suppress("UNCHECKED_CAST")
+    suspend fun <T : SocialConnection> findConnection(
+        connectionClass: Class<T>,
         minecraftUuid: UUID
-    ): SocialConnection? =
-        when (connectionClass) {
-            DiscordConnection::class.java -> ClientSocialInstance.rabbitApi.sendRequest(
-                FindDiscordConnectionRequestPacket(minecraftUuid)
-            ).connection
+    ): T? = when (connectionClass) {
+        DiscordConnection::class.java -> ClientSocialInstance.rabbitApi.sendRequest(
+            FindDiscordConnectionRequestPacket(minecraftUuid)
+        ).connection as? T
 
-            TwitchConnection::class.java -> ClientSocialInstance.rabbitApi.sendRequest(
-                FindTwitchConnectionRequestPacket(minecraftUuid)
-            ).connection
-            
-            else -> null
-        }
+        TwitchConnection::class.java -> ClientSocialInstance.rabbitApi.sendRequest(
+            FindTwitchConnectionRequestPacket(minecraftUuid)
+        ).connection as? T
+
+        else -> null
+    }
 }

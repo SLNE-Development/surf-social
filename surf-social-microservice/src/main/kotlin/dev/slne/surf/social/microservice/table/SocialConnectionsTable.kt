@@ -7,5 +7,5 @@ object SocialConnectionsTable : AuditableLongIdTable("social_connections") {
     val discordUserId = long("discord_user_id").uniqueIndex()
     val minecraftUuid = nativeUuid("minecraft_uuid").uniqueIndex()
     val twitchId = long("twitch_id").uniqueIndex().nullable()
-    val isOnDiscord = bool("blocked").default(false)
+    val isOnDiscord = bool("is_on_discord").default(false)
 }

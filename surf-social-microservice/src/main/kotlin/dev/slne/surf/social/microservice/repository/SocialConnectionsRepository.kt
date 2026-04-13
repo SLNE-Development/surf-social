@@ -10,48 +10,51 @@ import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.microservice.table.SocialConnectionsTable
 import kotlinx.coroutines.flow.firstOrNull
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 object SocialConnectionsRepository {
-    private val discordNameCache = Caffeine.newBuilder().asLoadingCache<Long, String> {
-        fetchDiscordName(it)
-    }
+    private val discordNameCache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .asLoadingCache<Long, String> { fetchDiscordName(it) }
 
-    private val twitchNameCache = Caffeine.newBuilder().asLoadingCache<Long, String> {
-        fetchTwitchName(it)
-    }
+    private val twitchNameCache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .asLoadingCache<Long, String> { fetchTwitchName(it) }
 
     suspend fun findDiscordConnection(
         minecraftUuid: UUID
     ): SocialConnection? = suspendTransaction {
-        SocialConnectionsTable.selectAll().firstOrNull {
-            it[SocialConnectionsTable.minecraftUuid] == minecraftUuid
-        }?.let {
-            DiscordConnection(
-                discordId = it[SocialConnectionsTable.discordUserId],
-                discordName = discordNameCache.get(it[SocialConnectionsTable.discordUserId])
-            )
-        }
+        SocialConnectionsTable.selectAll()
+            .where { SocialConnectionsTable.minecraftUuid eq minecraftUuid }
+            .firstOrNull()?.let {
+                DiscordConnection(
+                    discordId = it[SocialConnectionsTable.discordUserId],
+                    discordName = discordNameCache.get(it[SocialConnectionsTable.discordUserId])
+                )
+            }
     }
 
     suspend fun findTwitchConnection(
         minecraftUuid: UUID
     ): SocialConnection? = suspendTransaction {
-        SocialConnectionsTable.selectAll().firstOrNull {
-            it[SocialConnectionsTable.minecraftUuid] == minecraftUuid
-        }?.get(SocialConnectionsTable.twitchId)?.let {
-            TwitchConnection(
-                twitchId = it,
-                twitchName = twitchNameCache.get(it)
-            )
-        }
+        SocialConnectionsTable.selectAll()
+            .where { SocialConnectionsTable.minecraftUuid eq minecraftUuid }
+            .firstOrNull()
+            ?.get(SocialConnectionsTable.twitchId)?.let {
+                TwitchConnection(
+                    twitchId = it,
+                    twitchName = twitchNameCache.get(it)
+                )
+            }
     }
 
+    private suspend fun fetchDiscordName(discordId: Long): String {
+        return discordId.toString()
+    }
 
-    private suspend fun fetchDiscordName(
-        discordId: Long
-    ): String = TODO("Fetch discord name from discord id")
-
-    private suspend fun fetchTwitchName(
-        twitchId: Long
-    ): String = TODO("Fetch twitch name from twitch id")
+    private suspend fun fetchTwitchName(twitchId: Long): String {
+        return twitchId.toString()
+    }
 }
