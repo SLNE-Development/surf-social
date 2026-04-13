@@ -50,10 +50,12 @@ object SocialConnectionsRepository {
             }
     }
 
+    // TODO: Integrate with Discord API to resolve actual usernames
     private suspend fun fetchDiscordName(discordId: Long): String {
         return discordId.toString()
     }
 
+    // TODO: Integrate with Twitch API to resolve actual usernames
     private suspend fun fetchTwitchName(twitchId: Long): String {
         return twitchId.toString()
     }
