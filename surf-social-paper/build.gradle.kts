@@ -6,6 +6,8 @@ surfPaperPluginApi {
     mainClass("dev.slne.surf.social.paper.PaperMain")
     generateLibraryLoader(false)
 
+    withCorePaper()
+
     authors.add("red")
 }
 

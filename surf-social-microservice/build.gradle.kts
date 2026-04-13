@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     api(projects.surfSocialCore.surfSocialCoreCommon)
+    implementation("io.ktor:ktor-client-cio:2.3.7")
 }
 
 surfStandaloneApi {

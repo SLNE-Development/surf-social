@@ -2,9 +2,9 @@ package dev.slne.surf.social.microservice.repository
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
+import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.eq
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.selectAll
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
-import dev.slne.surf.social.api.connection.SocialConnection
 import dev.slne.surf.social.api.connection.impl.DiscordConnection
 import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.microservice.table.SocialConnectionsTable
@@ -39,30 +39,30 @@ object SocialConnectionsRepository {
 
     private val discordNameCache = Caffeine.newBuilder()
         .maximumSize(10_000)
-        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .expireAfterWrite(30, TimeUnit.MINUTES)
         .asLoadingCache<Long, String> { fetchDiscordName(it) }
 
     private val twitchNameCache = Caffeine.newBuilder()
         .maximumSize(10_000)
-        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .expireAfterWrite(30, TimeUnit.MINUTES)
         .asLoadingCache<Long, String> { fetchTwitchName(it) }
 
     suspend fun findDiscordConnection(
         minecraftUuid: UUID
-    ): SocialConnection? = suspendTransaction {
+    ): DiscordConnection? = suspendTransaction {
         SocialConnectionsTable.selectAll()
             .where { SocialConnectionsTable.minecraftUuid eq minecraftUuid }
-            .firstOrNull()?.let {
+            .firstOrNull()?.get(SocialConnectionsTable.discordUserId)?.let {
                 DiscordConnection(
-                    discordId = it[SocialConnectionsTable.discordUserId],
-                    discordName = discordNameCache.get(it[SocialConnectionsTable.discordUserId])
+                    discordId = it,
+                    discordName = discordNameCache.get(it)
                 )
             }
     }
 
     suspend fun findTwitchConnection(
         minecraftUuid: UUID
-    ): SocialConnection? = suspendTransaction {
+    ): TwitchConnection? = suspendTransaction {
         SocialConnectionsTable.selectAll()
             .where { SocialConnectionsTable.minecraftUuid eq minecraftUuid }
             .firstOrNull()
@@ -76,9 +76,10 @@ object SocialConnectionsRepository {
 
     private suspend fun fetchDiscordName(discordId: Long): String {
         return try {
-            val response = httpClient.get("https://discordlookup.mesavirep.xyz/v1/user/${discordId}") {
-                accept(ContentType.Application.Json)
-            }
+            val response =
+                httpClient.get("https://discordlookup.mesavirep.xyz/v1/user/${discordId}") {
+                    accept(ContentType.Application.Json)
+                }
 
             if (response.status == HttpStatusCode.OK) {
                 val jsonObject = json.parseToJsonElement(response.bodyAsText()).jsonObject

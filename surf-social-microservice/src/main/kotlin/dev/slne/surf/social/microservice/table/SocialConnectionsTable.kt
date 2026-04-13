@@ -4,8 +4,8 @@ import dev.slne.surf.database.columns.nativeUuid
 import dev.slne.surf.database.table.AuditableLongIdTable
 
 object SocialConnectionsTable : AuditableLongIdTable("social_connections") {
-    val discordUserId = long("discord_user_id").uniqueIndex()
+    val discordUserId = long("discord_user_id").uniqueIndex().nullable()
     val minecraftUuid = nativeUuid("minecraft_uuid").uniqueIndex()
     val twitchId = long("twitch_id").uniqueIndex().nullable()
-    val isOnDiscord = bool("blocked").default(false)
+    val blocked = bool("blocked").default(true)
 }
