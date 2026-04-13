@@ -1,0 +1,27 @@
+package dev.slne.surf.social.core.client.service
+
+import dev.slne.surf.social.api.connection.SocialConnection
+import dev.slne.surf.social.api.connection.impl.DiscordConnection
+import dev.slne.surf.social.api.connection.impl.TwitchConnection
+import dev.slne.surf.social.core.client.ClientSocialInstance
+import dev.slne.surf.social.core.common.rabbit.packet.request.FindDiscordConnectionRequestPacket
+import dev.slne.surf.social.core.common.rabbit.packet.request.FindTwitchConnectionRequestPacket
+import java.util.*
+
+object SocialConnectionsService {
+    suspend fun getConnection(
+        connectionClass: Class<out SocialConnection>,
+        minecraftUuid: UUID
+    ): SocialConnection? =
+        when (connectionClass) {
+            DiscordConnection::class.java -> ClientSocialInstance.rabbitApi.sendRequest(
+                FindDiscordConnectionRequestPacket(minecraftUuid)
+            ).connection
+
+            TwitchConnection::class.java -> ClientSocialInstance.rabbitApi.sendRequest(
+                FindTwitchConnectionRequestPacket(minecraftUuid)
+            ).connection
+            
+            else -> null
+        }
+}

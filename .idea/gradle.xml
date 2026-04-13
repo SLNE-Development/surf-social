@@ -9,9 +9,12 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/surf-social-api" />
-            <option value="$PROJECT_DIR$/surf-social-backend" />
-            <option value="$PROJECT_DIR$/surf-social-bukkit" />
             <option value="$PROJECT_DIR$/surf-social-core" />
+            <option value="$PROJECT_DIR$/surf-social-core/surf-social-core-client" />
+            <option value="$PROJECT_DIR$/surf-social-core/surf-social-core-common" />
+            <option value="$PROJECT_DIR$/surf-social-microservice" />
+            <option value="$PROJECT_DIR$/surf-social-paper" />
+            <option value="$PROJECT_DIR$/surf-social-velocity" />
           </set>
         </option>
       </GradleProjectSettings>
