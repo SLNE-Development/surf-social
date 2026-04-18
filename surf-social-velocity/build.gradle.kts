@@ -11,6 +11,10 @@ velocityPluginFile {
     }
 }
 
+surfVelocityApi {
+    withCoreVelocity()
+}
+
 dependencies {
     api(projects.surfSocialCore.surfSocialCoreClient)
 }

@@ -8,6 +8,9 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
 import dev.slne.surf.social.core.client.ClientSocialInstance
+import dev.slne.surf.social.velocity.command.linkCommand
+import dev.slne.surf.social.velocity.command.surfSocialCommand
+import dev.slne.surf.social.velocity.config.SocialConfigManager
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import java.nio.file.Path
@@ -29,6 +32,8 @@ class VelocityMain @Inject constructor(
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
+        surfSocialCommand()
+        linkCommand()
     }
 
     @Subscribe
@@ -41,6 +46,9 @@ class VelocityMain @Inject constructor(
     companion object {
         lateinit var instance: VelocityMain
     }
+
+    val socialConfigManager = SocialConfigManager()
 }
 
+val config get() = plugin.socialConfigManager.config
 val plugin get() = VelocityMain.instance
