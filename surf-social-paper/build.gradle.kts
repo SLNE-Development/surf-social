@@ -5,6 +5,7 @@ plugins {
 surfPaperPluginApi {
     mainClass("dev.slne.surf.social.paper.PaperMain")
     generateLibraryLoader(false)
+    foliaSupported(true)
 
     withCorePaper()
 
