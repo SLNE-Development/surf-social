@@ -26,7 +26,7 @@ fun linkCommand() = commandTree("link") {
                         "?client_id=${config.twitchClientId}" +
                         "&redirect_uri=https://stats.castcrafter.de/api/auth/twitch/callback" +
                         "&response_type=code" +
-                        "&state=MINECARFT_UUID"
+                        "&state=${player.uniqueId}"
 
                 appendInfoPrefix()
                 info("Bitte verifiziere deinen Twitch Account hier: ")
