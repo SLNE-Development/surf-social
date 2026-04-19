@@ -25,7 +25,8 @@ fun linkCommand() = commandTree("link") {
                 val url = "https://id.twitch.tv/oauth2/authorize" +
                         "?client_id=${config.twitchClientId}" +
                         "&redirect_uri=https://stats.castcrafter.de/api/auth/twitch/callback" +
-                        "&response_type=code"
+                        "&response_type=code" +
+                        "&state=MINECARFT_UUID"
 
                 appendInfoPrefix()
                 info("Bitte verifiziere deinen Twitch Account hier: ")
