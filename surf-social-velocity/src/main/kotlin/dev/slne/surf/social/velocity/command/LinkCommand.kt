@@ -15,6 +15,7 @@ import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.api.findConnection
 import dev.slne.surf.social.velocity.config
 import dev.slne.surf.social.velocity.permission.SocialPermissions
+import dev.slne.surf.social.velocity.util.encryptUuid
 
 fun linkCommand() = commandTree("link") {
     withPermission(SocialPermissions.COMMAND_LINK)
@@ -24,9 +25,9 @@ fun linkCommand() = commandTree("link") {
             player.sendText {
                 val url = "https://id.twitch.tv/oauth2/authorize" +
                         "?client_id=${config.twitchClientId}" +
-                        "&redirect_uri=https://stats.castcrafter.de/api/auth/twitch/callback" +
+                        "&redirect_uri=https://server.castcrafter.de/api/auth/twitch/callback" +
                         "&response_type=code" +
-                        "&state=${player.uniqueId}"
+                        "&state=${encryptUuid(player.uniqueId)}"
 
                 appendInfoPrefix()
                 info("Bitte verifiziere deinen Twitch Account hier: ")
