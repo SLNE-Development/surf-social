@@ -44,8 +44,21 @@ fun linkCommand() = commandTree("link") {
     literalArgument("discord") {
         playerExecutor { player, _ ->
             player.sendText {
-                appendWarningPrefix()
-                warning("Du kannst dich derzeit nicht manuell mit deinem Discord Account verbinden.")
+                val url = "https://discord.com/oauth2/authorize" +
+                        "?client_id=${config.discordClientId}" +
+                        "&redirect_uri=http://localhost:3000/api/auth/discord/callback" +
+                        "&response_type=code" +
+                        "&scope=identify" +
+                        "&state=${encryptUuid(player.uniqueId)}"
+
+                appendInfoPrefix()
+                info("Bitte verifiziere deinen Discord Account hier: ")
+                append {
+                    spacer("[")
+                    variableValue("Verifizierungslink")
+                    spacer("]")
+                    clickOpensUrl(url)
+                }
             }
         }
     }

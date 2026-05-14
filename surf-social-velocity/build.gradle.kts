@@ -5,10 +5,6 @@ plugins {
 velocityPluginFile {
     main = "dev.slne.surf.social.velocity.VelocityMain"
     authors = listOf("red")
-
-    pluginDependencies {
-        register("surf-rabbitmq-velocity")
-    }
 }
 
 surfVelocityApi {
