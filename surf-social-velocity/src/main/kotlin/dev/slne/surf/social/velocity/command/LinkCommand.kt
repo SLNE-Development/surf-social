@@ -46,7 +46,7 @@ fun linkCommand() = commandTree("link") {
             player.sendText {
                 val url = "https://discord.com/oauth2/authorize" +
                         "?client_id=${config.discordClientId}" +
-                        "&redirect_uri=http://localhost:3000/api/auth/discord/callback" +
+                        "&redirect_uri=https://server.castcrafter.de/api/auth/discord/callback" +
                         "&response_type=code" +
                         "&scope=identify" +
                         "&state=${encryptUuid(player.uniqueId)}"
