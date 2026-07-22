@@ -15,15 +15,3 @@ allprojects {
     group = "dev.slne.surf.social"
     version = findProperty("version") as String
 }
-
-subprojects {
-    afterEvaluate {
-        plugins.withType<PublishingPlugin> {
-            configure<PublishingExtension> {
-                repositories {
-                    slneReleases()
-                }
-            }
-        }
-    }
-}
