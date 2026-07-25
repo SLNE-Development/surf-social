@@ -2,13 +2,14 @@ package dev.slne.surf.social.microservice.repository
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
+import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.and
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.eq
-import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.selectAll
+import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.select
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import dev.slne.surf.social.api.connection.impl.DiscordConnection
 import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.microservice.config.SocialConfig
-import dev.slne.surf.social.microservice.table.SocialConnectionsTable
+import dev.slne.surf.social.microservice.table.AccountsTable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -25,8 +26,8 @@ import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-object SocialConnectionsRepository {
-    private val logger = LoggerFactory.getLogger(SocialConnectionsRepository::class.java)
+object AccountsRepository {
+    private val logger = LoggerFactory.getLogger(AccountsRepository::class.java)
 
     private val httpClient = HttpClient.newBuilder()
         .followRedirects(HttpClient.Redirect.NORMAL)
@@ -48,28 +49,43 @@ object SocialConnectionsRepository {
     suspend fun findDiscordConnection(
         minecraftUuid: UUID
     ): DiscordConnection? = suspendTransaction {
-        SocialConnectionsTable.selectAll()
-            .where { SocialConnectionsTable.minecraftUuid eq minecraftUuid }
-            .firstOrNull()?.get(SocialConnectionsTable.discordUserId)?.let {
-                DiscordConnection(
-                    discordId = it,
-                    discordName = discordNameCache.get(it)
-                )
-            }
+        val minecraftAccountId = AccountsTable
+            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
+            .where((AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()))
+            .firstOrNull()?.getOrNull(AccountsTable.userId) ?: return@suspendTransaction null
+
+
+        val discordId = AccountsTable
+            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
+            .where((AccountsTable.provider eq "discord") and (AccountsTable.userId eq minecraftAccountId))
+            .firstOrNull()?.getOrNull(AccountsTable.providerAccountId)?.toLongOrNull()
+            ?: return@suspendTransaction null
+
+
+        return@suspendTransaction DiscordConnection(
+            discordId = discordId,
+            discordName = discordNameCache.get(discordId)
+        )
     }
 
     suspend fun findTwitchConnection(
         minecraftUuid: UUID
     ): TwitchConnection? = suspendTransaction {
-        SocialConnectionsTable.selectAll()
-            .where { SocialConnectionsTable.minecraftUuid eq minecraftUuid }
-            .firstOrNull()
-            ?.get(SocialConnectionsTable.twitchId)?.let {
-                TwitchConnection(
-                    twitchId = it,
-                    twitchName = twitchNameCache.get(it)
-                )
-            }
+        val minecraftProviderAccountId = AccountsTable
+            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
+            .where((AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()))
+            .firstOrNull()?.getOrNull(AccountsTable.userId) ?: return@suspendTransaction null
+
+        val twitchId = AccountsTable
+            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
+            .where((AccountsTable.provider eq "twitch") and (AccountsTable.userId eq minecraftProviderAccountId))
+            .firstOrNull()?.getOrNull(AccountsTable.providerAccountId)?.toLongOrNull()
+            ?: return@suspendTransaction null
+
+        return@suspendTransaction TwitchConnection(
+            twitchId = twitchId,
+            twitchName = twitchNameCache.get(twitchId)
+        )
     }
 
     private suspend fun fetchDiscordName(discordId: Long): String {
@@ -78,7 +94,7 @@ object SocialConnectionsRepository {
                 .uri(URI.create("https://discord.com/api/users/${discordId}"))
                 .header("Authorization", "Bot ${SocialConfig.discordBotToken}")
                 .header("Accept", "application/json")
-                .timeout(Duration.ofSeconds(10))
+                .timeout(Duration.ofSeconds(5))
                 .GET()
                 .build()
 
@@ -93,7 +109,11 @@ object SocialConnectionsRepository {
 
                 globalName ?: username ?: discordId.toString()
             } else {
-                logger.warn("Discord API returned status {} for user {}", response.statusCode(), discordId)
+                logger.warn(
+                    "Discord API returned status {} for user {}",
+                    response.statusCode(),
+                    discordId
+                )
                 discordId.toString()
             }
         } catch (e: Exception) {
@@ -107,7 +127,7 @@ object SocialConnectionsRepository {
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.ivr.fi/v2/twitch/user?id=${twitchId}"))
                 .header("Accept", "application/json")
-                .timeout(Duration.ofSeconds(10))
+                .timeout(Duration.ofSeconds(5))
                 .GET()
                 .build()
 

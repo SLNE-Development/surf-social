@@ -8,7 +8,7 @@ import dev.slne.surf.microservice.api.microservice.Microservice
 import dev.slne.surf.rabbitmq.api.ServerRabbitMQApi
 import dev.slne.surf.social.microservice.config.SocialConfig
 import dev.slne.surf.social.microservice.handler.SocialConnectionsHandler
-import dev.slne.surf.social.microservice.table.SocialConnectionsTable
+import dev.slne.surf.social.microservice.table.AccountsTable
 import kotlin.io.path.Path
 
 @AutoService(Microservice::class)
@@ -21,7 +21,7 @@ class SocialMicroservice : Microservice() {
         SocialConfig.load(dataPath)
 
         suspendTransaction {
-            SchemaUtils.create(SocialConnectionsTable)
+            SchemaUtils.create(AccountsTable)
         }
 
         rabbitApi.registerRequestHandler(SocialConnectionsHandler)

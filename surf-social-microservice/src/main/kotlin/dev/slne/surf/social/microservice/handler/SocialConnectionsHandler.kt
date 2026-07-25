@@ -5,7 +5,7 @@ import dev.slne.surf.social.core.common.rabbit.packet.request.FindDiscordConnect
 import dev.slne.surf.social.core.common.rabbit.packet.request.FindTwitchConnectionRequestPacket
 import dev.slne.surf.social.core.common.rabbit.packet.response.DiscordConnectionResponsePacket
 import dev.slne.surf.social.core.common.rabbit.packet.response.TwitchConnectionResponsePacket
-import dev.slne.surf.social.microservice.repository.SocialConnectionsRepository
+import dev.slne.surf.social.microservice.repository.AccountsRepository
 import kotlinx.coroutines.launch
 
 object SocialConnectionsHandler {
@@ -13,7 +13,7 @@ object SocialConnectionsHandler {
     fun handleFindDiscordConnection(request: FindDiscordConnectionRequestPacket) = request.launch {
         request.respond(
             DiscordConnectionResponsePacket(
-                SocialConnectionsRepository.findDiscordConnection(
+                AccountsRepository.findDiscordConnection(
                     request.minecraftUuid
                 )
             )
@@ -24,7 +24,7 @@ object SocialConnectionsHandler {
     fun handleFindTwitchConnection(request: FindTwitchConnectionRequestPacket) = request.launch {
         request.respond(
             TwitchConnectionResponsePacket(
-                SocialConnectionsRepository.findTwitchConnection(
+                AccountsRepository.findTwitchConnection(
                     request.minecraftUuid
                 )
             )
