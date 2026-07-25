@@ -14,10 +14,3 @@ object AccountsTable : Table("account") {
 
     override val primaryKey = PrimaryKey(provider, providerAccountId)
 }
-
-enum class AdapterAccountType {
-    OAUTH,
-    OIDC,
-    EMAIL,
-    CREDENTIALS
-}
