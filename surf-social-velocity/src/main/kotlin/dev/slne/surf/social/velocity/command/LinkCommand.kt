@@ -18,8 +18,10 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.withTimeoutOrNull
 import net.kyori.adventure.text.format.TextDecoration
 import java.util.*
+import kotlin.time.Duration.Companion.seconds
 
 fun linkCommand() = commandTree("link") {
     withPermission(SocialPermissions.COMMAND_LINK)
@@ -117,19 +119,23 @@ private val client = HttpClient {
     }
 }
 
-private suspend fun respondMinecraftAuth(playerUuid: UUID, code: String) = client.post {
-    url("https://auth.castcrafter.de/api/minecraft-link")
-    contentType(ContentType.Application.Json)
-    bearerAuth(config.minecraftAuthToken)
+private suspend fun respondMinecraftAuth(playerUuid: UUID, code: String): Boolean =
+    withTimeoutOrNull(5.seconds) {
+        runCatching {
+            client.post {
+                url("https://auth.castcrafter.de/api/minecraft-link")
+                contentType(ContentType.Application.Json)
+                bearerAuth(config.minecraftAuthToken)
+                userAgent("surf-social-velocity/LinkCommand")
 
-    userAgent("surf-social-velocity/LinkCommand")
-
-    setBody(
-        """
-            {
-                "minecraftUuid": "$playerUuid",
-                "code": "$code"
-            }
-            """.trimIndent()
-    )
-}.status.isSuccess()
+                setBody(
+                    """
+                    {
+                        "minecraftUuid": "$playerUuid",
+                        "code": "$code"
+                    }
+                    """.trimIndent()
+                )
+            }.status.isSuccess()
+        }.getOrDefault(false)
+    } ?: false
