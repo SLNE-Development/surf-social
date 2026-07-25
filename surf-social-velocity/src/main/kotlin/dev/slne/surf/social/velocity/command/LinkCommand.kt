@@ -1,6 +1,9 @@
 package dev.slne.surf.social.velocity.command
 
-import dev.jorel.commandapi.kotlindsl.*
+import dev.jorel.commandapi.kotlindsl.commandTree
+import dev.jorel.commandapi.kotlindsl.getValue
+import dev.jorel.commandapi.kotlindsl.literalArgument
+import dev.jorel.commandapi.kotlindsl.stringArgument
 import dev.slne.surf.api.core.command.args.awaiting
 import dev.slne.surf.api.core.messages.adventure.sendText
 import dev.slne.surf.api.velocity.command.executors.anyExecutorSuspend
@@ -13,7 +16,6 @@ import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.api.findConnection
 import dev.slne.surf.social.velocity.config
 import dev.slne.surf.social.velocity.permission.SocialPermissions
-import dev.slne.surf.social.velocity.util.encryptUuid
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -37,49 +39,6 @@ fun linkCommand() = commandTree("link") {
                 player.sendText {
                     appendErrorPrefix()
                     error("Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.")
-                }
-            }
-        }
-    }
-
-    literalArgument("twitch") {
-        playerExecutor { player, _ ->
-            player.sendText {
-                val url = "https://id.twitch.tv/oauth2/authorize" +
-                        "?client_id=${config.twitchClientId}" +
-                        "&redirect_uri=https://server.castcrafter.de/api/auth/twitch/callback" +
-                        "&response_type=code" +
-                        "&state=${encryptUuid(player.uniqueId)}"
-
-                appendInfoPrefix()
-                info("Bitte verifiziere deinen Twitch Account hier: ")
-                append {
-                    spacer("[")
-                    variableValue("Verifizierungslink")
-                    spacer("]")
-                    clickOpensUrl(url)
-                }
-            }
-        }
-    }
-
-    literalArgument("discord") {
-        playerExecutor { player, _ ->
-            player.sendText {
-                val url = "https://discord.com/oauth2/authorize" +
-                        "?client_id=${config.discordClientId}" +
-                        "&redirect_uri=https://server.castcrafter.de/api/auth/discord/callback" +
-                        "&response_type=code" +
-                        "&scope=identify" +
-                        "&state=${encryptUuid(player.uniqueId)}"
-
-                appendInfoPrefix()
-                info("Bitte verifiziere deinen Discord Account hier: ")
-                append {
-                    spacer("[")
-                    variableValue("Verifizierungslink")
-                    spacer("]")
-                    clickOpensUrl(url)
                 }
             }
         }
