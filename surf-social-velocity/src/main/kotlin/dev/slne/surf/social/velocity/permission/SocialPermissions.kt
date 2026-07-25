@@ -6,5 +6,5 @@ object SocialPermissions {
 
     const val COMMAND_SURF_SOCIAL = "$BASE.command.surfsocial"
     const val COMMAND_LINK = "$BASE.command.link"
-    const val COMMAND_LINK_DEBUG = "$COMMAND_LINK.debug"
+    const val COMMAND_LINK_LOOKUP = "$COMMAND_LINK.lookup"
 }

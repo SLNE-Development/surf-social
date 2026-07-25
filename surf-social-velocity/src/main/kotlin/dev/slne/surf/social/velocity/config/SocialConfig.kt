@@ -6,5 +6,6 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 data class SocialConfig(
     val twitchClientId: String = "",
     val discordClientId: String = "",
-    val encryptionSecret: String = ""
+    val encryptionSecret: String = "",
+    val minecraftAuthToken: String = ""
 )

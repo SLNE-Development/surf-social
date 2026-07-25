@@ -11,6 +11,9 @@ import dev.slne.surf.social.core.client.ClientSocialInstance
 import dev.slne.surf.social.velocity.command.linkCommand
 import dev.slne.surf.social.velocity.command.surfSocialCommand
 import dev.slne.surf.social.velocity.config.SocialConfigManager
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import java.nio.file.Path
@@ -38,6 +41,8 @@ class VelocityMain @Inject constructor(
 
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
+        client.close()
+
         runBlocking {
             ClientSocialInstance.clientLoader.onDisable()
         }
@@ -48,6 +53,12 @@ class VelocityMain @Inject constructor(
     }
 
     val socialConfigManager = SocialConfigManager()
+}
+
+val client = HttpClient {
+    install(ContentNegotiation) {
+        json()
+    }
 }
 
 val config get() = plugin.socialConfigManager.config
