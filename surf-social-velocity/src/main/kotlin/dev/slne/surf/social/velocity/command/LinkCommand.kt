@@ -1,12 +1,10 @@
 package dev.slne.surf.social.velocity.command
 
-import dev.jorel.commandapi.kotlindsl.commandTree
-import dev.jorel.commandapi.kotlindsl.literalArgument
-import dev.jorel.commandapi.kotlindsl.playerExecutor
+import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.api.core.command.args.awaiting
-import dev.slne.surf.api.core.messages.adventure.clickOpensUrl
 import dev.slne.surf.api.core.messages.adventure.sendText
 import dev.slne.surf.api.velocity.command.executors.anyExecutorSuspend
+import dev.slne.surf.api.velocity.command.executors.playerExecutorSuspend
 import dev.slne.surf.core.api.common.player.SurfPlayer
 import dev.slne.surf.core.api.velocity.command.argument.surfOfflinePlayerArgument
 import dev.slne.surf.social.api.SurfSocialApi
@@ -16,9 +14,33 @@ import dev.slne.surf.social.api.findConnection
 import dev.slne.surf.social.velocity.config
 import dev.slne.surf.social.velocity.permission.SocialPermissions
 import dev.slne.surf.social.velocity.util.encryptUuid
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import java.util.*
 
 fun linkCommand() = commandTree("link") {
     withPermission(SocialPermissions.COMMAND_LINK)
+
+    stringArgument("code") {
+        playerExecutorSuspend { player, arguments ->
+            val code: String by arguments
+
+            if (respondMinecraftAuth(player.uniqueId, code)) {
+                player.sendText {
+                    appendSuccessPrefix()
+                    success("Dein Minecraft Account wurde erfolgreich verifiziert.")
+                }
+            } else {
+                player.sendText {
+                    appendErrorPrefix()
+                    error("Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.")
+                }
+            }
+        }
+    }
 
     literalArgument("twitch") {
         playerExecutor { player, _ ->
@@ -116,3 +138,26 @@ fun linkCommand() = commandTree("link") {
         }
     }
 }
+
+private val client = HttpClient {
+    install(ContentNegotiation) {
+        json()
+    }
+}
+
+private suspend fun respondMinecraftAuth(playerUuid: UUID, code: String) = client.post {
+    url("https://auth.castcrafter.de/api/minecraft-link")
+    contentType(ContentType.Application.Json)
+    bearerAuth(config.minecraftAuthToken)
+
+    userAgent("surf-social-velocity/LinkCommand")
+
+    setBody(
+        """
+            {
+                "minecraftUuid": "$playerUuid",
+                "code": "$code"
+            }
+            """.trimIndent()
+    )
+}.status.isSuccess()
