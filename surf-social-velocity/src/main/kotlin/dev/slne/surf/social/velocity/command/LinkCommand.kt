@@ -1,9 +1,6 @@
 package dev.slne.surf.social.velocity.command
 
-import dev.jorel.commandapi.kotlindsl.commandTree
-import dev.jorel.commandapi.kotlindsl.getValue
-import dev.jorel.commandapi.kotlindsl.literalArgument
-import dev.jorel.commandapi.kotlindsl.stringArgument
+import dev.jorel.commandapi.kotlindsl.*
 import dev.slne.surf.api.core.command.args.awaiting
 import dev.slne.surf.api.core.messages.adventure.sendText
 import dev.slne.surf.api.velocity.command.executors.anyExecutorSuspend
@@ -21,10 +18,26 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import net.kyori.adventure.text.format.TextDecoration
 import java.util.*
 
 fun linkCommand() = commandTree("link") {
     withPermission(SocialPermissions.COMMAND_LINK)
+
+    playerExecutor { player, _ ->
+        player.sendText {
+            appendInfoPrefix()
+            info("Du kannst deine Konten unter ")
+            append {
+                variableValue("https://auth.castcrafter.de/account?tabs=accounts")
+                decorate(TextDecoration.UNDERLINED)
+                clickOpensUrl("https://auth.castcrafter.de/account?tabs=accounts ")
+            }
+
+            info(" verknüpfen.")
+        }
+
+    }
 
     stringArgument("code") {
         playerExecutorSuspend { player, arguments ->
@@ -44,8 +57,8 @@ fun linkCommand() = commandTree("link") {
         }
     }
 
-    literalArgument("debug") {
-        withPermission(SocialPermissions.COMMAND_LINK_DEBUG)
+    literalArgument("lookup") {
+        withPermission(SocialPermissions.COMMAND_LINK_LOOKUP)
         surfOfflinePlayerArgument("target") {
             anyExecutorSuspend { sender, arguments ->
                 val target = arguments.awaiting<SurfPlayer?>("target")
