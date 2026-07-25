@@ -11,13 +11,11 @@ import dev.slne.surf.social.api.SurfSocialApi
 import dev.slne.surf.social.api.connection.impl.DiscordConnection
 import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.api.findConnection
+import dev.slne.surf.social.velocity.client
 import dev.slne.surf.social.velocity.config
 import dev.slne.surf.social.velocity.permission.SocialPermissions
-import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.withTimeoutOrNull
 import net.kyori.adventure.text.format.TextDecoration
 import java.util.*
@@ -110,12 +108,6 @@ fun linkCommand() = commandTree("link") {
                 }
             }
         }
-    }
-}
-
-private val client = HttpClient {
-    install(ContentNegotiation) {
-        json()
     }
 }
 
