@@ -6,6 +6,7 @@ import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.core.client.ClientSocialInstance
 import dev.slne.surf.social.core.common.rabbit.packet.request.FindDiscordConnectionRequestPacket
 import dev.slne.surf.social.core.common.rabbit.packet.request.FindTwitchConnectionRequestPacket
+import dev.slne.surf.social.core.common.rabbit.packet.request.UnlinkMinecraftConnectionRequest
 import java.util.*
 
 object SocialConnectionsService {
@@ -24,4 +25,9 @@ object SocialConnectionsService {
 
         else -> null
     }
+
+    suspend fun unlinkMinecraftAccount(minecraftUuid: UUID) =
+        ClientSocialInstance.rabbitApi.sendRequest(
+            UnlinkMinecraftConnectionRequest(minecraftUuid)
+        ).value
 }
