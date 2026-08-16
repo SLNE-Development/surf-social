@@ -90,12 +90,7 @@ object AccountsRepository {
     }
 
     suspend fun unlinkMinecraftAccount(minecraftUuid: UUID) = suspendTransaction {
-        val webUserId = AccountsTable
-            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
-            .where((AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()))
-            .firstOrNull()?.getOrNull(AccountsTable.userId) ?: return@suspendTransaction false
-
-        AccountsTable.deleteWhere { (AccountsTable.userId eq webUserId) and (AccountsTable.provider eq "minecraft") } > 0
+        AccountsTable.deleteWhere { (AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()) } > 0
     }
 
     private suspend fun fetchDiscordName(discordId: Long): String {
