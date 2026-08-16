@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.and
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.eq
+import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.deleteWhere
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.select
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import dev.slne.surf.social.api.connection.impl.DiscordConnection
@@ -86,6 +87,10 @@ object AccountsRepository {
             twitchId = twitchId,
             twitchName = twitchNameCache.get(twitchId)
         )
+    }
+
+    suspend fun unlinkMinecraftAccount(minecraftUuid: UUID) = suspendTransaction {
+        AccountsTable.deleteWhere { (AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()) } > 0
     }
 
     private suspend fun fetchDiscordName(discordId: Long): String {

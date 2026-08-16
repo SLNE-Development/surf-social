@@ -10,6 +10,7 @@ import com.velocitypowered.api.proxy.ProxyServer
 import dev.slne.surf.social.core.client.ClientSocialInstance
 import dev.slne.surf.social.velocity.command.linkCommand
 import dev.slne.surf.social.velocity.command.surfSocialCommand
+import dev.slne.surf.social.velocity.command.unlinkCommand
 import dev.slne.surf.social.velocity.config.SocialConfigManager
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -37,6 +38,7 @@ class VelocityMain @Inject constructor(
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         surfSocialCommand()
         linkCommand()
+        unlinkCommand()
     }
 
     @Subscribe
