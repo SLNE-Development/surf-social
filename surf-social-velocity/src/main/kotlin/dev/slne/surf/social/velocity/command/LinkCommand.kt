@@ -31,7 +31,7 @@ fun linkCommand() = commandTree("link") {
             append {
                 variableValue("https://auth.castcrafter.de/account?tabs=accounts")
                 decorate(TextDecoration.UNDERLINED)
-                clickOpensUrl("https://auth.castcrafter.de/account?tabs=accounts ")
+                clickOpensUrl("https://auth.castcrafter.de/account?tabs=accounts")
             }
 
             info(" verknüpfen.")
