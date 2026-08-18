@@ -6,6 +6,7 @@ import dev.slne.surf.rabbitmq.api.packet.standard.response.primitive.PrimitiveRe
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Deprecated("Use SocialConnectionRpc")
 data class UnlinkMinecraftConnectionRequest(
     val minecraftUuid: SerializableUUID
 ) : RabbitRequestPacket<PrimitiveResponse.BooleanResponsePacket>()

@@ -9,6 +9,7 @@ velocityPluginFile {
 
 surfVelocityApi {
     withCoreVelocity()
+    withSurfRedis()
 }
 
 dependencies {

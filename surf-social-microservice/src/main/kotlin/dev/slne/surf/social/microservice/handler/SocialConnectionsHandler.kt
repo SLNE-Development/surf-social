@@ -33,6 +33,7 @@ object SocialConnectionsHandler {
         )
     }
 
+    @Suppress("DEPRECATION")
     @RabbitHandler
     fun handleUnlinkMinecraftConnectionPacket(request: UnlinkMinecraftConnectionRequest) = request.launch {
         request.respond(PrimitiveResponse.BooleanResponsePacket(AccountsRepository.unlinkMinecraftAccount(request.minecraftUuid)))

@@ -4,11 +4,13 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.and
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.eq
+import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.deleteReturning
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.deleteWhere
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.select
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import dev.slne.surf.social.api.connection.impl.DiscordConnection
 import dev.slne.surf.social.api.connection.impl.TwitchConnection
+import dev.slne.surf.social.core.common.rabbit.rpc.SocialConnectionRpc
 import dev.slne.surf.social.microservice.config.SocialConfig
 import dev.slne.surf.social.microservice.table.AccountsTable
 import kotlinx.coroutines.Dispatchers
@@ -91,6 +93,32 @@ object AccountsRepository {
 
     suspend fun unlinkMinecraftAccount(minecraftUuid: UUID) = suspendTransaction {
         AccountsTable.deleteWhere { (AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()) } > 0
+    }
+
+    suspend fun unlinkMinecraftAccountWithResult(
+        minecraftUuid: UUID
+    ): SocialConnectionRpc.UnlinkResult = suspendTransaction {
+        val deletedMinecraftAccount = AccountsTable
+            .deleteReturning(listOf(AccountsTable.userId)) {
+                (AccountsTable.provider eq "minecraft") and
+                        (AccountsTable.providerAccountId eq minecraftUuid.toString())
+            }
+            .firstOrNull()
+            ?: return@suspendTransaction SocialConnectionRpc.UnlinkResult.NotLinked
+
+        val linkedUserId = deletedMinecraftAccount[AccountsTable.userId]
+
+        val discordId = AccountsTable
+            .select(AccountsTable.providerAccountId)
+            .where(
+                (AccountsTable.provider eq "discord") and
+                        (AccountsTable.userId eq linkedUserId)
+            )
+            .firstOrNull()
+            ?.getOrNull(AccountsTable.providerAccountId)
+            ?.toLongOrNull()
+
+        SocialConnectionRpc.UnlinkResult.Unlinked(discordId)
     }
 
     private suspend fun fetchDiscordName(discordId: Long): String {

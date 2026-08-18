@@ -12,6 +12,7 @@ import dev.slne.surf.social.velocity.command.linkCommand
 import dev.slne.surf.social.velocity.command.surfSocialCommand
 import dev.slne.surf.social.velocity.command.unlinkCommand
 import dev.slne.surf.social.velocity.config.SocialConfigManager
+import dev.slne.surf.social.velocity.redis.SocialRedisService
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
@@ -32,6 +33,8 @@ class VelocityMain @Inject constructor(
         runBlocking {
             ClientSocialInstance.clientLoader.onLoad()
         }
+
+        SocialRedisService.connect()
     }
 
     @Subscribe
@@ -48,6 +51,8 @@ class VelocityMain @Inject constructor(
         runBlocking {
             ClientSocialInstance.clientLoader.onDisable()
         }
+
+        SocialRedisService.disconnect()
     }
 
     companion object {

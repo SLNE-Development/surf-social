@@ -6,8 +6,10 @@ import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import dev.slne.surf.microservice.api.microservice.Microservice
 import dev.slne.surf.rabbitmq.api.ServerRabbitMQApi
+import dev.slne.surf.social.core.common.rabbit.rpc.SocialConnectionRpc
 import dev.slne.surf.social.microservice.config.SocialConfig
 import dev.slne.surf.social.microservice.handler.SocialConnectionsHandler
+import dev.slne.surf.social.microservice.rpc.SocialConnectionRpcImpl
 import dev.slne.surf.social.microservice.table.AccountsTable
 import kotlin.io.path.Path
 
@@ -25,6 +27,7 @@ class SocialMicroservice : Microservice() {
         }
 
         rabbitApi.registerRequestHandler(SocialConnectionsHandler)
+        rabbitApi.registerRpcService<SocialConnectionRpc>(SocialConnectionRpcImpl())
         rabbitApi.freezeAndConnect()
     }
 

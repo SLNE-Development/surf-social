@@ -6,10 +6,12 @@ import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.core.client.ClientSocialInstance
 import dev.slne.surf.social.core.common.rabbit.packet.request.FindDiscordConnectionRequestPacket
 import dev.slne.surf.social.core.common.rabbit.packet.request.FindTwitchConnectionRequestPacket
-import dev.slne.surf.social.core.common.rabbit.packet.request.UnlinkMinecraftConnectionRequest
+import dev.slne.surf.social.core.common.rabbit.rpc.SocialConnectionRpc
 import java.util.*
 
 object SocialConnectionsService {
+    private val rpc by lazy { ClientSocialInstance.rabbitApi.createRpcService<SocialConnectionRpc>() }
+
     @Suppress("UNCHECKED_CAST")
     suspend fun <T : SocialConnection> findConnection(
         connectionClass: Class<T>,
@@ -27,7 +29,5 @@ object SocialConnectionsService {
     }
 
     suspend fun unlinkMinecraftAccount(minecraftUuid: UUID) =
-        ClientSocialInstance.rabbitApi.sendRequest(
-            UnlinkMinecraftConnectionRequest(minecraftUuid)
-        ).value
+        rpc.unlinkMinecraftAccount(minecraftUuid)
 }
