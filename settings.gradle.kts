@@ -5,6 +5,7 @@ include("surf-social-core:surf-social-core-common")
 include("surf-social-core:surf-social-core-client")
 include("surf-social-paper")
 include("surf-social-velocity")
+include("surf-social-minestom")
 
 include("surf-social-microservice")
 
