@@ -26,8 +26,11 @@ class VelocityMain @Inject constructor(
     val logger: Logger,
     suspendingPluginContainer: SuspendingPluginContainer
 ) {
+    val socialConfigManager: SocialConfigManager
+
     init {
         suspendingPluginContainer.initialize(this)
+        socialConfigManager = SocialConfigManager(dataPath)
         instance = this
 
         runBlocking {
@@ -56,10 +59,9 @@ class VelocityMain @Inject constructor(
     }
 
     companion object {
+        @Volatile
         lateinit var instance: VelocityMain
     }
-
-    val socialConfigManager = SocialConfigManager()
 }
 
 val client = HttpClient {

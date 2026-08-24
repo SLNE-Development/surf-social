@@ -25,6 +25,7 @@ class SocialMinestomEntrypoint @Inject constructor(
     }
 
     companion object {
+        @Volatile
         lateinit var dataPath: Path
     }
 }

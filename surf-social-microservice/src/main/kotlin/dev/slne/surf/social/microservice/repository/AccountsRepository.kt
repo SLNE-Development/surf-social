@@ -2,8 +2,10 @@ package dev.slne.surf.social.microservice.repository
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.sksamuel.aedile.core.asLoadingCache
+import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.Op
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.and
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.eq
+import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.core.inSubQuery
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.deleteReturning
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.deleteWhere
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.select
@@ -13,9 +15,9 @@ import dev.slne.surf.social.api.connection.impl.TwitchConnection
 import dev.slne.surf.social.core.common.rabbit.rpc.SocialConnectionRpc
 import dev.slne.surf.social.microservice.config.SocialConfig
 import dev.slne.surf.social.microservice.table.AccountsTable
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.future.await
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
@@ -30,6 +32,10 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 object AccountsRepository {
+    private const val PROVIDER_MINECRAFT = "minecraft"
+    private const val PROVIDER_DISCORD = "discord"
+    private const val PROVIDER_TWITCH = "twitch"
+
     private val logger = LoggerFactory.getLogger(AccountsRepository::class.java)
 
     private val httpClient = HttpClient.newBuilder()
@@ -51,21 +57,10 @@ object AccountsRepository {
 
     suspend fun findDiscordConnection(
         minecraftUuid: UUID
-    ): DiscordConnection? = suspendTransaction {
-        val minecraftAccountId = AccountsTable
-            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
-            .where((AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()))
-            .firstOrNull()?.getOrNull(AccountsTable.userId) ?: return@suspendTransaction null
+    ): DiscordConnection? {
+        val discordId = findLinkedProviderAccountId(PROVIDER_DISCORD, minecraftUuid) ?: return null
 
-
-        val discordId = AccountsTable
-            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
-            .where((AccountsTable.provider eq "discord") and (AccountsTable.userId eq minecraftAccountId))
-            .firstOrNull()?.getOrNull(AccountsTable.providerAccountId)?.toLongOrNull()
-            ?: return@suspendTransaction null
-
-
-        return@suspendTransaction DiscordConnection(
+        return DiscordConnection(
             discordId = discordId,
             discordName = discordNameCache.get(discordId)
         )
@@ -73,26 +68,17 @@ object AccountsRepository {
 
     suspend fun findTwitchConnection(
         minecraftUuid: UUID
-    ): TwitchConnection? = suspendTransaction {
-        val minecraftProviderAccountId = AccountsTable
-            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
-            .where((AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()))
-            .firstOrNull()?.getOrNull(AccountsTable.userId) ?: return@suspendTransaction null
+    ): TwitchConnection? {
+        val twitchId = findLinkedProviderAccountId(PROVIDER_TWITCH, minecraftUuid) ?: return null
 
-        val twitchId = AccountsTable
-            .select(AccountsTable.userId, AccountsTable.provider, AccountsTable.providerAccountId)
-            .where((AccountsTable.provider eq "twitch") and (AccountsTable.userId eq minecraftProviderAccountId))
-            .firstOrNull()?.getOrNull(AccountsTable.providerAccountId)?.toLongOrNull()
-            ?: return@suspendTransaction null
-
-        return@suspendTransaction TwitchConnection(
+        return TwitchConnection(
             twitchId = twitchId,
             twitchName = twitchNameCache.get(twitchId)
         )
     }
 
     suspend fun unlinkMinecraftAccount(minecraftUuid: UUID) = suspendTransaction {
-        AccountsTable.deleteWhere { (AccountsTable.provider eq "minecraft") and (AccountsTable.providerAccountId eq minecraftUuid.toString()) } > 0
+        AccountsTable.deleteWhere { (AccountsTable.provider eq PROVIDER_MINECRAFT) and (AccountsTable.providerAccountId eq minecraftUuid.toString()) } > 0
     }
 
     suspend fun unlinkMinecraftAccountWithResult(
@@ -100,7 +86,7 @@ object AccountsRepository {
     ): SocialConnectionRpc.UnlinkResult = suspendTransaction {
         val deletedMinecraftAccount = AccountsTable
             .deleteReturning(listOf(AccountsTable.userId)) {
-                (AccountsTable.provider eq "minecraft") and
+                (AccountsTable.provider eq PROVIDER_MINECRAFT) and
                         (AccountsTable.providerAccountId eq minecraftUuid.toString())
             }
             .firstOrNull()
@@ -111,15 +97,43 @@ object AccountsRepository {
         val discordId = AccountsTable
             .select(AccountsTable.providerAccountId)
             .where(
-                (AccountsTable.provider eq "discord") and
+                (AccountsTable.provider eq PROVIDER_DISCORD) and
                         (AccountsTable.userId eq linkedUserId)
             )
+            .limit(1)
             .firstOrNull()
             ?.getOrNull(AccountsTable.providerAccountId)
             ?.toLongOrNull()
 
         SocialConnectionRpc.UnlinkResult.Unlinked(discordId)
     }
+
+    /**
+     * Resolves the account id that [provider] has linked to [minecraftUuid], in a single round trip.
+     */
+    private suspend fun findLinkedProviderAccountId(
+        provider: String,
+        minecraftUuid: UUID
+    ): Long? = suspendTransaction {
+        AccountsTable
+            .select(AccountsTable.providerAccountId)
+            .where(linkedAccountCondition(provider, minecraftUuid))
+            .limit(1)
+            .firstOrNull()
+            ?.getOrNull(AccountsTable.providerAccountId)
+            ?.toLongOrNull()
+    }
+
+    private fun linkedAccountCondition(provider: String, minecraftUuid: UUID): Op<Boolean> =
+        (AccountsTable.provider eq provider) and
+                AccountsTable.userId.inSubQuery(
+                    AccountsTable
+                        .select(AccountsTable.userId)
+                        .where(
+                            (AccountsTable.provider eq PROVIDER_MINECRAFT) and
+                                    (AccountsTable.providerAccountId eq minecraftUuid.toString())
+                        )
+                )
 
     private suspend fun fetchDiscordName(discordId: Long): String {
         return try {
@@ -131,9 +145,9 @@ object AccountsRepository {
                 .GET()
                 .build()
 
-            val response = withContext(Dispatchers.IO) {
-                httpClient.send(request, HttpResponse.BodyHandlers.ofString())
-            }
+            val response = httpClient
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .await()
 
             if (response.statusCode() == 200) {
                 val jsonObject = json.parseToJsonElement(response.body()).jsonObject
@@ -149,6 +163,8 @@ object AccountsRepository {
                 )
                 discordId.toString()
             }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (e: Exception) {
             logger.warn("Failed to fetch Discord name for id {}: {}", discordId, e.message)
             discordId.toString()
@@ -164,9 +180,9 @@ object AccountsRepository {
                 .GET()
                 .build()
 
-            val response = withContext(Dispatchers.IO) {
-                httpClient.send(request, HttpResponse.BodyHandlers.ofString())
-            }
+            val response = httpClient
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .await()
 
             if (response.statusCode() == 200) {
                 val jsonArray = json.parseToJsonElement(response.body())
@@ -183,6 +199,8 @@ object AccountsRepository {
             } else {
                 twitchId.toString()
             }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (e: Exception) {
             logger.warn("Failed to fetch Twitch name for id {}: {}", twitchId, e.message)
             twitchId.toString()

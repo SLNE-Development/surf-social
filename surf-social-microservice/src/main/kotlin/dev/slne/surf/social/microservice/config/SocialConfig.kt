@@ -8,6 +8,7 @@ import kotlin.io.path.*
 object SocialConfig {
     private val logger = LoggerFactory.getLogger(SocialConfig::class.java)
 
+    @Volatile
     lateinit var discordBotToken: String
         private set
 

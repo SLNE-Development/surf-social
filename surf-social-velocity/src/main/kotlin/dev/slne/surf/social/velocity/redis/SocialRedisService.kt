@@ -1,24 +1,40 @@
 package dev.slne.surf.social.velocity.redis
 
 import dev.slne.surf.redis.RedisApi
+import java.util.concurrent.atomic.AtomicReference
 
 object SocialRedisService {
-    lateinit var redisApi: RedisApi
-        private set
 
-    lateinit var discordRolesPublisher: DiscordRolesPublisher
-        private set
+    /**
+     * The api and its publisher are held together in one immutable value so that a reader can
+     * never observe a connected [RedisApi] with a publisher that is still missing.
+     */
+    private class Connection(
+        val redisApi: RedisApi,
+        val discordRolesPublisher: DiscordRolesPublisher
+    )
+
+    private val connection = AtomicReference<Connection?>()
+
+    private val current
+        get() = connection.get() ?: error("SocialRedisService has not been connected yet")
+
+    val redisApi: RedisApi get() = current.redisApi
+
+    val discordRolesPublisher: DiscordRolesPublisher get() = current.discordRolesPublisher
 
     fun connect() {
-        redisApi = RedisApi.create()
+        val redisApi = RedisApi.create()
         redisApi.freezeAndConnect()
 
-        discordRolesPublisher = DiscordRolesPublisher(redisApi)
+        connection.set(Connection(redisApi, DiscordRolesPublisher(redisApi)))
     }
 
     fun disconnect() {
-        if (::redisApi.isInitialized && redisApi.isConnected()) {
-            redisApi.disconnect()
+        val active = connection.getAndSet(null) ?: return
+
+        if (active.redisApi.isConnected()) {
+            active.redisApi.disconnect()
         }
     }
 }

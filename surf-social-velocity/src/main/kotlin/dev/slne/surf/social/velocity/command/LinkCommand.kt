@@ -16,6 +16,8 @@ import dev.slne.surf.social.velocity.config
 import dev.slne.surf.social.velocity.permission.SocialPermissions
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import net.kyori.adventure.text.format.TextDecoration
 import java.util.*
@@ -73,8 +75,12 @@ fun linkCommand() = commandTree("link") {
 
                 val start = System.currentTimeMillis()
 
-                val discordConnection = SurfSocialApi.findConnection<DiscordConnection>(target.uuid)
-                val twitchConnection = SurfSocialApi.findConnection<TwitchConnection>(target.uuid)
+                val (discordConnection, twitchConnection) = coroutineScope {
+                    val discord = async { SurfSocialApi.findConnection<DiscordConnection>(target.uuid) }
+                    val twitch = async { SurfSocialApi.findConnection<TwitchConnection>(target.uuid) }
+
+                    discord.await() to twitch.await()
+                }
 
                 sender.sendText {
                     appendInfoPrefix()
