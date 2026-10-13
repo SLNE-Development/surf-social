@@ -13,6 +13,7 @@ include("surf-social-microservice")
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        mavenLocal()
         maven("https://reposilite.slne.dev/releases")
     }
 }
