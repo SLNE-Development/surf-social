@@ -7,5 +7,5 @@ import dev.slne.surf.social.core.common.SocialInstance
 
 @AutoService(SocialInstance::class)
 class MinestomSocialInstance : ClientSocialInstance {
-    override val clientLoader = ClientLoader(SocialMinestomEntrypoint.dataPath)
+    override val clientLoader = ClientLoader(SocialMinestomPlugin.dataDirectory)
 }
